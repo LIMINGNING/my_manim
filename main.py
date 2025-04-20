@@ -91,10 +91,124 @@ class RectangleAroundScene(MovingCameraScene):
             distance = player_radius + frisbee_radius + buff  # buff可以为负数表示重叠
             frisbee_position = player_center + dir_unit * distance
             
-            # 移动飞盘到计算位置
-            frisbee.move_to(frisbee_position)
+            return frisbee_position
+        
+        def fly_frisbee(self, frisbee, target_player, direction, flight_type="left", run_time=1.5, arc_angle=PI/2):
+            """
+            控制飞盘按指定路径飞行到目标玩家的指定方向
             
-            return frisbee
+            参数:
+            frisbee - 飞盘对象
+            target_player - 目标玩家对象
+            direction - 飞盘最终相对于玩家的方向（LEFT、RIGHT等）
+            flight_type - 飞行类型：'left'(左弧线)、'right'(右弧线)或'straight'(直线)
+            run_time - 动画时长
+            arc_angle - 弧线角度大小(仅用于弧线飞行)
+            """
+            # 获取起点和终点
+            start_point = frisbee.get_center()
+            end_point = place_frisbee_at_direction(self, target_player, direction, frisbee)
+            
+            # 根据飞行类型创建路径
+            if flight_type == "left":
+                # 左弧线飞行
+                path = ArcBetweenPoints(
+                    start_point,
+                    end_point,
+                    angle=-arc_angle  # 负值表示向左弧线
+                )
+                
+            elif flight_type == "right":
+                # 右弧线飞行
+                path = ArcBetweenPoints(
+                    start_point,
+                    end_point,
+                    angle=arc_angle  # 正值表示向右弧线
+                )
+                
+            else:  # straight
+                # 直线飞行
+                path = Line(start_point, end_point)
+            
+            # 飞盘沿路径飞行动画
+            self.play(
+                MoveAlongPath(frisbee, path),
+                run_time=run_time,
+                rate_func=smooth
+            )
+            
+            # 将飞盘移动到精确位置
+            frisbee.move_to(end_point)
+            
+            high_light_player(target_player)  # 高亮目标玩家
+            return end_point  # 返回飞盘最终位置
+
+        def high_light_player(target_player):
+            # 获取玩家的原始颜色
+            original_color = target_player[0].get_fill_color()
+            
+            # 高亮显示为黄色
+            self.play(
+                target_player[0].animate.set_fill(color=YELLOW),
+                run_time=0.5,
+                rate_func=lambda t: smooth(t)
+            )
+            
+            # 保持高亮状态
+            self.wait(0.3)
+            
+            # 颜色逐渐变回原始颜色
+            self.play(
+                target_player[0].animate.set_fill(color=original_color),  # 恢复原始颜色
+                run_time=0.6,
+                rate_func=lambda t: smooth(t)
+            )
+
+        def fly_frisbee_with_player(self, frisbee, target_player, direction, player_movement,
+                           flight_type="left", run_time=1.5, arc_angle=PI/2):
+            """
+            同步执行玩家移动和飞盘飞行
+            
+            参数:
+            frisbee - 飞盘对象
+            target_player - 目标玩家对象
+            direction - 飞盘最终相对于玩家的方向
+            player_movement - 玩家的位移向量，例如 UP * 2
+            flight_type - 飞行类型：'left'、'right'或'straight'
+            run_time - 动画时长
+            arc_angle - 弧线角度大小
+            """
+            # 获取起点
+            start_point = frisbee.get_center()
+            
+            # 计算玩家移动后的位置
+            future_player = target_player.copy()
+            future_player.shift(player_movement)
+            
+            # 计算飞盘终点 (相对于移动后的玩家)
+            end_point = place_frisbee_at_direction(self, future_player, direction, frisbee)
+            
+            # 创建路径
+            if flight_type == "left":
+                path = ArcBetweenPoints(start_point, end_point, angle=-arc_angle)
+            elif flight_type == "right":
+                path = ArcBetweenPoints(start_point, end_point, angle=arc_angle)
+            else:
+                path = Line(start_point, end_point)
+            
+            # 同步执行动画
+            self.play(
+                target_player.animate.shift(player_movement),
+                MoveAlongPath(frisbee, path),
+                run_time=run_time,
+                rate_func=smooth
+            )
+            
+            # 高亮显示接球的攻击者
+            high_light_player(target_player)
+            
+            return end_point
+
         # 创建一个长方形，宽度为场景宽度，高度为场景高度
         '''
         rectangle = Rectangle(width=GROUND_WIDTH, height=GROUND_LENGTH, color=BLUE)
@@ -106,7 +220,7 @@ class RectangleAroundScene(MovingCameraScene):
         Create(dashed_line_down)
         shu_ground = VGroup(rectangle,dashed_line_up,dashed_line_down)
         '''
-
+        # scene1
         rectangle1 = Rectangle(width=BIGGER_GROUND * GROUND_LENGTH,height=BIGGER_GROUND * GROUND_WIDTH,color=BLUE)
         
         dashed_line_Left = DashedLine(
@@ -174,12 +288,13 @@ class RectangleAroundScene(MovingCameraScene):
         self.play(Write(defenders_label))
         self.wait(2)
 
-        # frisbee and handler
+        # scene3: frisbee and handler
         frisbee = Circle(radius=FRISBEE_RADIUS,color=WHITE)
         handler = self.create_circle(1,RED,WHITE)
 
         handler.shift(np.array([0, -2.8, 0]))
-        place_frisbee_at_direction(self, handler, RIGHT, frisbee)
+        frisbee_position = place_frisbee_at_direction(self, handler, RIGHT, frisbee)
+        frisbee.move_to(frisbee_position)
         self.play(FadeIn(handler))
         self.play(FadeIn(frisbee))
         handler_center  = handler.get_center()
@@ -196,7 +311,7 @@ class RectangleAroundScene(MovingCameraScene):
             )
         )
 
-        # attackers and defenders
+        # scene4: attackers and defenders
         attackers = {}
         for i in range(2,8):
             attackers[i] = self.create_circle(i,RED,WHITE)
@@ -233,10 +348,12 @@ class RectangleAroundScene(MovingCameraScene):
             self.camera.frame.animate.move_to(attackers[7].get_center()),
             run_time=1.5  # 控制移动速度，数值越大越慢
         )
+        '''
         # 添加updater让相机持续跟随attackers[7]
         self.camera.frame.add_updater(
             lambda frame, dt: frame.move_to(attackers[7].get_center())
         )
+
 
         def smooth_follow(frame, dt):
             # 平滑地跟随目标，interpolate_factor控制平滑程度(0-1之间)
@@ -249,14 +366,52 @@ class RectangleAroundScene(MovingCameraScene):
 
         # 使用平滑跟随函数
         self.camera.frame.add_updater(smooth_follow)
+        '''
+        fly_frisbee_with_player(self,frisbee, attackers[7], LEFT, UP * 2,
+                           flight_type="left", run_time=1.5, arc_angle=PI/2)
 
-        # 现在任何attackers[7]的移动都会被相机跟随
-        self.play(attackers[7].animate.shift(UP * 2))
         self.wait(1)
         # 当你想停止相机跟随时
+        '''
         self.camera.frame.clear_updaters()
         # 现在attackers[7]移动不会再被跟随
+        '''
         self.play(attackers[7].animate.shift(RIGHT * 2))
+
+        # 将相机视角平滑地回到原点
+        self.play(
+            self.camera.frame.animate.move_to(ORIGIN),
+            run_time=1.5  # 控制过渡速度
+        )
+        '''
+        # 如果需要恢复到最初的帧大小
+        self.play(
+            self.camera.frame.animate.set_width(config.frame_width),
+            self.camera.frame.animate.set_height(config.frame_height),
+            run_time=1.0
+        )
+        '''
+        self.wait(1)
+
+        fly_frisbee(
+            self,
+            frisbee,
+            attackers[6],
+            LEFT,
+            flight_type="left",
+            run_time=1.5,
+            arc_angle=PI/2
+        )
+
+        fly_frisbee(
+            self,
+            frisbee,
+            defender[7],
+            UR,
+            flight_type="straight",
+            run_time=1.5,
+            arc_angle=PI/2
+        )
 
         self.wait(1)
 
