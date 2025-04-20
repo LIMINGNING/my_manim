@@ -336,14 +336,14 @@ class RectangleAroundScene(MovingCameraScene):
                 
                 return end_point
         
-        def camera_follow_player(self, player, vertical_only=True, run_time=1.0, target_camera_pos=None):
+        def move_camera_to_player(self, player, vertical_only=True, run_time=1.0, target_camera_pos=None):
             '''
             @param player: 目标玩家对象
             @param vertical_only: 是否只在垂直方向跟随（默认True）
             @param run_time: 动画时长
             @param target_camera_pos: 目标相机位置（可选）
             @description: 控制相机跟随目标玩家
-            @example: camera_follow_player(player)
+            @example: move_camera_to_player(player)
             @note: 该函数将相机移动到目标玩家的指定位置
             @note: vertical_only参数决定是否只在垂直方向跟随
             '''
@@ -378,9 +378,9 @@ class RectangleAroundScene(MovingCameraScene):
                 
             return target_camera_pos
 
-        def move_player(self, player, target_position, path_type="straight", run_time=1.0, arc_angle=PI/2, highlight=False):
+        def move_player(self, player, target_position, path_type="straight", run_time=1.0, arc_angle=PI/2, highlight=False, is_camera_follow=False, vertical_only=True, target_camera_pos=None):
             """
-            控制玩家按指定路径移动到目标位置
+            控制玩家按指定路径移动到目标位置，可选择相机跟随
             
             参数:
             player - 要移动的玩家对象
@@ -389,6 +389,9 @@ class RectangleAroundScene(MovingCameraScene):
             run_time - 动画时长
             arc_angle - 弧线角度大小(仅用于弧线移动)
             highlight - 是否在移动结束后高亮显示玩家
+            is_camera_follow - 是否让相机跟随玩家移动
+            vertical_only - 相机是否只在垂直方向跟随（保持X坐标不变）
+            target_camera_pos - 自定义相机目标位置（可选）
             """
             # 获取起点
             start_point = player.get_center()
@@ -422,12 +425,39 @@ class RectangleAroundScene(MovingCameraScene):
                 # 直线移动
                 path = Line(start_point, end_point)
             
-            # 玩家沿路径移动动画
-            self.play(
-                MoveAlongPath(player, path),
-                run_time=run_time,
-                rate_func=smooth
-            )
+            # 处理相机跟随
+            if is_camera_follow:
+                if target_camera_pos is not None:
+                    # 如果提供了特定的相机位置，使用它
+                    target_camera_pos = target_camera_pos
+                else:
+                    # 获取当前相机位置
+                    current_camera_pos = self.camera.frame.get_center()
+                    if vertical_only:
+                        # 只在垂直方向跟随（保持X坐标不变）
+                        target_camera_pos = np.array([
+                            current_camera_pos[0], 
+                            end_point[1],  # 使用目标点的Y坐标
+                            current_camera_pos[2]
+                        ])
+                    else:
+                        # 完全跟随到玩家位置
+                        target_camera_pos = end_point
+                
+                # 执行带相机移动的动画
+                self.play(
+                    MoveAlongPath(player, path),
+                    self.camera.frame.animate.move_to(target_camera_pos),
+                    run_time=run_time,
+                    rate_func=smooth
+                )
+            else:
+                # 不跟随相机的普通移动
+                self.play(
+                    MoveAlongPath(player, path),
+                    run_time=run_time,
+                    rate_func=smooth
+                )
             
             # 确保玩家移动到精确位置
             player.move_to(end_point)
@@ -639,6 +669,7 @@ class RectangleAroundScene(MovingCameraScene):
             is_camera_move=False,
         )
 
+        '''
         # 示例1：让攻击者向左移动1个单位，使用左弧线路径
         move_player(self, attackers[6], LEFT, path_type="left", run_time=1.5)
 
@@ -651,8 +682,26 @@ class RectangleAroundScene(MovingCameraScene):
 
         # 示例4：移动并高亮显示
         move_player(self, attackers[3], DOWN*3, highlight=True)
+        '''
 
-        camera_follow_player(
+        # 示例1：让攻击者向左移动1个单位，使用左弧线路径，相机垂直跟随
+        move_player(self, attackers[6], LEFT, path_type="left", run_time=1.5, 
+                    is_camera_follow=True, vertical_only=True)
+
+        # 示例2：移动到场地上的特定位置，相机完全跟随
+        target_pos = np.array([2.0, 1.5, 0])
+        move_player(self, handler, target_pos, path_type="right", 
+                    is_camera_follow=True, vertical_only=False)
+
+        # 示例3：使用向量组合，让防守者向右上方移动，不跟随相机
+        move_player(self, defender[5], RIGHT*2 + UP, path_type="straight", 
+                    is_camera_follow=False)
+
+        # 示例4：移动并高亮显示，自定义相机位置
+        move_player(self, attackers[3], DOWN*3, highlight=True, 
+                    is_camera_follow=True, target_camera_pos=np.array([0, -1, 0]))
+
+        move_camera_to_player(
             self,
             attackers[7],
             vertical_only=True,
