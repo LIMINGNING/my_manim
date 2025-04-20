@@ -378,6 +378,66 @@ class RectangleAroundScene(MovingCameraScene):
                 
             return target_camera_pos
 
+        def move_player(self, player, target_position, path_type="straight", run_time=1.0, arc_angle=PI/2, highlight=False):
+            """
+            控制玩家按指定路径移动到目标位置
+            
+            参数:
+            player - 要移动的玩家对象
+            target_position - 目标位置向量或点坐标
+            path_type - 路径类型：'left'(左弧线)、'right'(右弧线)或'straight'(直线)
+            run_time - 动画时长
+            arc_angle - 弧线角度大小(仅用于弧线移动)
+            highlight - 是否在移动结束后高亮显示玩家
+            """
+            # 获取起点
+            start_point = player.get_center()
+            
+            # 目标位置可以是向量或点坐标
+            if isinstance(target_position, np.ndarray) and len(target_position) == 3:
+                # 如果是点坐标，计算位移向量
+                end_point = target_position
+                shift_vector = end_point - start_point
+            else:
+                # 如果直接提供了位移向量
+                shift_vector = target_position
+                end_point = start_point + shift_vector
+            
+            # 根据路径类型创建不同的路径
+            if path_type == "left":
+                # 左弧线移动
+                path = ArcBetweenPoints(
+                    start_point,
+                    end_point,
+                    angle=-arc_angle  # 负值表示向左弧线
+                )
+            elif path_type == "right":
+                # 右弧线移动
+                path = ArcBetweenPoints(
+                    start_point,
+                    end_point,
+                    angle=arc_angle  # 正值表示向右弧线
+                )
+            else:  # straight
+                # 直线移动
+                path = Line(start_point, end_point)
+            
+            # 玩家沿路径移动动画
+            self.play(
+                MoveAlongPath(player, path),
+                run_time=run_time,
+                rate_func=smooth
+            )
+            
+            # 确保玩家移动到精确位置
+            player.move_to(end_point)
+            
+            # 可选：移动结束后高亮显示
+            if highlight:
+                high_light_player(player)
+            
+            return shift_vector  # 返回位移向量以便后续使用
+
         # 创建一个长方形，宽度为场景宽度，高度为场景高度
         '''
         rectangle = Rectangle(width=GROUND_WIDTH, height=GROUND_LENGTH, color=BLUE)
@@ -572,11 +632,25 @@ class RectangleAroundScene(MovingCameraScene):
             handler,
             attackers[7],
             LEFT,
+            handler_movement=RIGHT * 2,
             flight_type="left",
             run_time=1.5,
             arc_angle=PI/2,
             is_camera_move=False,
         )
+
+        # 示例1：让攻击者向左移动1个单位，使用左弧线路径
+        move_player(self, attackers[6], LEFT, path_type="left", run_time=1.5)
+
+        # 示例2：移动到场地上的特定位置
+        target_pos = np.array([2.0, 1.5, 0])
+        move_player(self, handler, target_pos, path_type="right")
+
+        # 示例3：使用向量组合，让防守者向右上方移动
+        move_player(self, defender[5], RIGHT*2 + UP, path_type="straight")
+
+        # 示例4：移动并高亮显示
+        move_player(self, attackers[3], DOWN*3, highlight=True)
 
         camera_follow_player(
             self,
@@ -591,8 +665,9 @@ class RectangleAroundScene(MovingCameraScene):
         # 当你想停止相机跟随时
         self.camera.frame.clear_updaters()
         # 现在attackers[7]移动不会再被跟随
-        '''
+        
         self.play(attackers[7].animate.shift(RIGHT * 2))
+        '''
 
         # 将相机视角平滑地回到原点
         self.play(
