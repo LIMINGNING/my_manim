@@ -5,6 +5,14 @@ from config import *
 GROUND_WIDTH = (config.frame_height - 0.1)*37/100
 GROUND_LENGTH = config.frame_height - 0.1
 BIGGER_GROUND = 1.5
+PLAER_RADIUS = 0.15
+FRISBEE_RADIUS = 0.1
+
+# 标准化的对角线方向 (长度为1)
+UR_UNIT = normalize(UR)
+UL_UNIT = normalize(UL)
+DR_UNIT = normalize(DR)
+DL_UNIT = normalize(DL)
 
 class RectangleAroundScene(MovingCameraScene):
     # 将attackers按顺序排在handler前方的竖排
@@ -50,13 +58,43 @@ class RectangleAroundScene(MovingCameraScene):
             defenders[i].move_to(positon)
 
     def create_circle(self,number,color,text_color=WHITE):
-        circle = Circle(radius=0.15,color=color)
+        circle = Circle(radius=PLAER_RADIUS,color=color)
         circle.set_fill(color=color,opacity=1)
+        circle.set_stroke(color=WHITE, width=2)
         number_text = Text(str(number),font_size=24,color=text_color)
         number_text.move_to(circle.get_center())
         return VGroup(circle, number_text)
     
     def construct(self):
+        def place_frisbee_at_direction(self, player, direction, frisbee, buff=0.05):
+            """
+            将飞盘精确放置在指定玩家的指定方向位置
+            使用直接计算代替next_to，确保所有方向距离一致
+            """
+            # 获取玩家中心
+            player_center = player.get_center()
+            
+            # 计算单位方向向量(确保长度为1)
+            if isinstance(direction, np.ndarray):
+                # 确保方向是单位向量
+                dir_unit = direction / np.linalg.norm(direction)
+            else:
+                dir_unit = direction  # 假设已经是单位向量如RIGHT, UP等
+            
+            # 计算玩家半径(假设玩家是圆形)
+            player_radius = PLAER_RADIUS  # 根据你的创建圆的参数
+            
+            # 计算飞盘半径
+            frisbee_radius = FRISBEE_RADIUS  # 根据你的飞盘半径
+            
+            # 计算飞盘位置: 玩家中心 + 方向*距离
+            distance = player_radius + frisbee_radius + buff  # buff可以为负数表示重叠
+            frisbee_position = player_center + dir_unit * distance
+            
+            # 移动飞盘到计算位置
+            frisbee.move_to(frisbee_position)
+            
+            return frisbee
         # 创建一个长方形，宽度为场景宽度，高度为场景高度
         '''
         rectangle = Rectangle(width=GROUND_WIDTH, height=GROUND_LENGTH, color=BLUE)
@@ -117,12 +155,31 @@ class RectangleAroundScene(MovingCameraScene):
         self.play(Create(jingongfangxiang))
         self.play(Write(jingongfangxiang_label))
 
+        tuli__attackers = Circle(radius=PLAER_RADIUS,color=RED) 
+        tuli__attackers.set_fill(color=RED,opacity=1)
+        tuli__attackers.set_stroke(color=WHITE, width=2)
+
+        tuli__defender = Circle(radius=PLAER_RADIUS,color=BLUE) 
+        tuli__defender.set_fill(color=BLUE,opacity=1)
+        tuli__defender.set_stroke(color=WHITE, width=2)
+
+        tuli__attackers.next_to(jingongfangxiang, DOWN)
+        tuli__defender.next_to(tuli__attackers, DOWN)
+        attackers_label = Tex("Attackers", font_size=32).next_to(tuli__attackers, RIGHT)
+        defenders_label = Tex("Defenders", font_size=32).next_to(tuli__defender, RIGHT)
+
+        self.play(Create(tuli__attackers))
+        self.play(Write(attackers_label))
+        self.play(Create(tuli__defender))
+        self.play(Write(defenders_label))
+        self.wait(2)
+
         # frisbee and handler
-        frisbee = Circle(radius=0.1,color=WHITE)
+        frisbee = Circle(radius=FRISBEE_RADIUS,color=WHITE)
         handler = self.create_circle(1,RED,WHITE)
 
         handler.shift(np.array([0, -2.8, 0]))
-        frisbee.next_to(handler,direction=UR,buff=-0.05)  
+        place_frisbee_at_direction(self, handler, RIGHT, frisbee)
         self.play(FadeIn(handler))
         self.play(FadeIn(frisbee))
         handler_center  = handler.get_center()
@@ -132,7 +189,7 @@ class RectangleAroundScene(MovingCameraScene):
         self.play(
             Rotate(
                 frisbee,
-                angle=PI/2,
+                angle=PI,
                 about_point=handler_center,
                 run_time=1,
                 rate_func=smooth
@@ -156,7 +213,7 @@ class RectangleAroundScene(MovingCameraScene):
         for i in range(3, 8):
             defenders_group.add(defender[i])
 
-        # 将2号攻击者移动到handler左下方位置(向左1个单位，向下1个单位)
+        # 将2号攻击者移动到handler左边
         attackers[2].move_to(handler.get_center() + LEFT)
 
         # 显示2号攻击者
@@ -271,4 +328,3 @@ class CreateDashedArrow(Animation):
         else:
             # 箭头尖端还不可见
             self.mobject.arrow_tip.set_opacity(0)
-
