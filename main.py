@@ -468,6 +468,28 @@ class RectangleAroundScene(MovingCameraScene):
             
             return shift_vector  # 返回位移向量以便后续使用
 
+        def create_camera_grid(self, x_range=[-6, 6], y_range=[-4, 4], scale=1):
+            """创建跟随相机移动的网格"""
+            grid = NumberPlane(
+                x_range=x_range,
+                y_range=y_range,
+                background_line_style={
+                    "stroke_opacity": 0.5,
+                    "stroke_width": 1
+                }
+            ).scale(scale)
+            
+            # 让网格跟随相机移动
+            def update_grid(grid):
+                grid.move_to(self.camera.frame.get_center())
+            
+            grid.add_updater(update_grid)
+            return grid
+
+        # 使用方法
+        camera_grid = create_camera_grid(self)
+        self.add(camera_grid)
+
         # 创建一个长方形，宽度为场景宽度，高度为场景高度
         '''
         rectangle = Rectangle(width=GROUND_WIDTH, height=GROUND_LENGTH, color=BLUE)
@@ -479,6 +501,12 @@ class RectangleAroundScene(MovingCameraScene):
         Create(dashed_line_down)
         shu_ground = VGroup(rectangle,dashed_line_up,dashed_line_down)
         '''
+
+        # 添加网格作为参考
+        grid = NumberPlane(x_range=[-6, 6], y_range=[-4, 4])
+        self.add(grid)
+
+
         # scene1
         rectangle1 = Rectangle(width=BIGGER_GROUND * GROUND_LENGTH,height=BIGGER_GROUND * GROUND_WIDTH,color=BLUE)
         
@@ -669,21 +697,6 @@ class RectangleAroundScene(MovingCameraScene):
             is_camera_move=False,
         )
 
-        '''
-        # 示例1：让攻击者向左移动1个单位，使用左弧线路径
-        move_player(self, attackers[6], LEFT, path_type="left", run_time=1.5)
-
-        # 示例2：移动到场地上的特定位置
-        target_pos = np.array([2.0, 1.5, 0])
-        move_player(self, handler, target_pos, path_type="right")
-
-        # 示例3：使用向量组合，让防守者向右上方移动
-        move_player(self, defender[5], RIGHT*2 + UP, path_type="straight")
-
-        # 示例4：移动并高亮显示
-        move_player(self, attackers[3], DOWN*3, highlight=True)
-        '''
-
         # 示例1：让攻击者向左移动1个单位，使用左弧线路径，相机垂直跟随
         move_player(self, attackers[6], LEFT, path_type="left", run_time=1.5, 
                     is_camera_follow=True, vertical_only=True)
@@ -700,6 +713,13 @@ class RectangleAroundScene(MovingCameraScene):
         # 示例4：移动并高亮显示，自定义相机位置
         move_player(self, attackers[3], DOWN*3, highlight=True, 
                     is_camera_follow=True, target_camera_pos=np.array([0, -1, 0]))
+        target_pos = np.array([-2, 8, 0])
+        move_player(self, handler, target_pos, highlight=True, path_type="right", 
+                    is_camera_follow=True, vertical_only=False)
+        
+        move_camera_to_player(self,attackers[7],vertical_only=False,run_time=1.5,target_camera_pos=None)
+
+        fly_frisbee(self,frisbee,attackers[7],handler,LEFT,flight_type="left",run_time=1.5,arc_angle=PI/2,target_player_movement=DOWN * 2,is_camera_move=True,highlight_player=True)
 
         move_camera_to_player(
             self,
