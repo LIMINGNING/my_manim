@@ -164,29 +164,43 @@ class RectangleAroundScene(MovingCameraScene):
                 rate_func=lambda t: smooth(t)
             )
 
-        def fly_frisbee_with_player(self, frisbee, target_player, direction, player_movement,
-                           flight_type="left", run_time=1.5, arc_angle=PI/2):
+        def fly_frisbee_with_camera(self, frisbee, handler, target_player, direction, flight_type="left", run_time=1.5, arc_angle=PI/2,target_player_movement=None,handler_movement=None, is_camera_move = True, vertical_only=True, target_camera_pos=None, highlight_player=True):
             """
-            同步执行玩家移动和飞盘飞行
+            飞盘飞行时相机跟随目标玩家，可选择是否只跟随垂直方向
             
             参数:
             frisbee - 飞盘对象
             target_player - 目标玩家对象
-            direction - 飞盘最终相对于玩家的方向
-            player_movement - 玩家的位移向量，例如 UP * 2
-            flight_type - 飞行类型：'left'、'right'或'straight'
+            direction - 飞盘最终相对于玩家的方向（LEFT、RIGHT等）
+            flight_type - 飞行类型：'left'(左弧线)、'right'(右弧线)或'straight'(直线)
             run_time - 动画时长
             arc_angle - 弧线角度大小
+            player_movement - 如果提供，玩家将同时移动这个向量
+            vertical_only - 如果为True，相机只在垂直方向跟随，保持水平位置不变
             """
             # 获取起点
             start_point = frisbee.get_center()
             
-            # 计算玩家移动后的位置
-            future_player = target_player.copy()
-            future_player.shift(player_movement)
-            
-            # 计算飞盘终点 (相对于移动后的玩家)
-            end_point = place_frisbee_at_direction(self, future_player, direction, frisbee)
+            # 计算终点和路径
+            if target_player_movement is not None:
+                # 如果玩家同时移动，计算移动后的位置
+                future_player = target_player.copy()
+                future_player.shift(target_player_movement)
+                end_point = place_frisbee_at_direction(self, future_player, direction, frisbee)
+                future_position = future_player.get_center()
+            else:
+                # 玩家不移动
+                end_point = place_frisbee_at_direction(self, target_player, direction, frisbee)
+                future_position = target_player.get_center()
+
+            if handler_movement is not None:
+                # 如果handler同时移动，计算移动后的位置
+                future_handler = handler.copy()
+                future_handler.shift(handler_movement)
+                handler_position = future_handler.get_center()
+            else:
+                # handler不移动
+                handler_position = handler.get_center()
             
             # 创建路径
             if flight_type == "left":
@@ -196,19 +210,94 @@ class RectangleAroundScene(MovingCameraScene):
             else:
                 path = Line(start_point, end_point)
             
-            # 同步执行动画
-            self.play(
-                target_player.animate.shift(player_movement),
-                MoveAlongPath(frisbee, path),
-                run_time=run_time,
-                rate_func=smooth
-            )
+            if is_camera_move:
+                # 计算相机目标位置
+                if target_camera_pos is not None:
+                    # 如果提供了目标相机位置，使用它
+                    target_camera_pos = target_camera_pos
+                else:
+                # 获取当前相机位置
+                    current_camera_pos = self.camera.frame.get_center()
+                    if vertical_only:
+                        # 只在垂直方向跟随（保持X坐标不变）
+                        target_camera_pos = np.array([
+                            current_camera_pos[0], 
+                            future_position[1], 
+                            current_camera_pos[2]
+                        ])
+                    else:
+                        # 完全跟随到目标位置
+                        target_camera_pos = future_position
+                
+                # 执行动画
+                animations = [
+                    self.camera.frame.animate.move_to(target_camera_pos)
+                ]
             
-            # 高亮显示接球的攻击者
-            high_light_player(target_player)
-            
-            return end_point
-
+                if target_player_movement is not None:
+                    animations.append(target_player.animate.shift(target_player_movement))
+                
+                if handler_movement is not None:
+                    animations.append(handler.animate.shift(handler_movement))
+                    
+                animations.append(MoveAlongPath(frisbee, path))
+                
+                self.play(
+                    *animations,
+                    run_time=run_time,
+                    rate_func=smooth
+                )
+                
+                # 将飞盘移动到精确位置
+                frisbee.move_to(end_point)
+                
+                if highlight_player:
+                    # 高亮显示接球的球员
+                    high_light_player(target_player)
+                
+                return end_point
+            else:
+                # 不移动相机
+                if target_player_movement is not None:
+                    if handler_movement is not None:
+                        self.play(
+                            target_player.animate.shift(target_player_movement),
+                            handler.animate.shift(handler_movement),
+                            MoveAlongPath(frisbee, path),
+                            run_time=run_time,
+                            rate_func=smooth
+                        )
+                    else:
+                        self.play(
+                            target_player.animate.shift(target_player_movement),
+                            MoveAlongPath(frisbee, path),
+                            run_time=run_time,
+                            rate_func=smooth
+                        )
+                else:
+                    if handler_movement is not None:
+                        self.play(
+                            handler.animate.shift(handler_movement),
+                            MoveAlongPath(frisbee, path),
+                            run_time=run_time,
+                            rate_func=smooth
+                        )
+                    else:
+                        self.play(
+                            MoveAlongPath(frisbee, path),
+                            run_time=run_time,
+                            rate_func=smooth
+                        )
+                
+                # 将飞盘移动到精确位置
+                frisbee.move_to(end_point)
+                
+                if highlight_player:
+                    # 高亮显示接球的球员
+                    high_light_player(target_player)
+                
+                return end_point
+        
         # 创建一个长方形，宽度为场景宽度，高度为场景高度
         '''
         rectangle = Rectangle(width=GROUND_WIDTH, height=GROUND_LENGTH, color=BLUE)
@@ -343,12 +432,13 @@ class RectangleAroundScene(MovingCameraScene):
         
         self.wait(2)
 
+        '''
         # 平滑地将相机中心移动到attackers[7]
         self.play(
             self.camera.frame.animate.move_to(attackers[7].get_center()),
             run_time=1.5  # 控制移动速度，数值越大越慢
         )
-        '''
+        
         # 添加updater让相机持续跟随attackers[7]
         self.camera.frame.add_updater(
             lambda frame, dt: frame.move_to(attackers[7].get_center())
@@ -366,13 +456,53 @@ class RectangleAroundScene(MovingCameraScene):
 
         # 使用平滑跟随函数
         self.camera.frame.add_updater(smooth_follow)
-        '''
+        
         fly_frisbee_with_player(self,frisbee, attackers[7], LEFT, UP * 2,
                            flight_type="left", run_time=1.5, arc_angle=PI/2)
+        '''
+        # 示例2: 玩家同时移动，相机跟随
+        fly_frisbee_with_camera(
+            self,
+            frisbee,
+            handler,
+            attackers[7],
+            LEFT,
+            flight_type="left",
+            run_time=1.5,
+            arc_angle=PI/2,
+            target_player_movement=UP * 2,
+            vertical_only=True
+        )
+
+        fly_frisbee_with_camera(
+            self,
+            frisbee,
+            attackers[7],
+            handler,
+            LEFT,
+            handler_movement=DOWN * 2,
+            flight_type="right",
+            run_time=1.5,
+            arc_angle=PI/2,
+            vertical_only=True,
+            target_camera_pos=ORIGIN
+        )
+
+        fly_frisbee_with_camera(
+            self,
+            frisbee,
+            handler,
+            attackers[7],
+            LEFT,
+            flight_type="left",
+            run_time=1.5,
+            arc_angle=PI/2,
+            is_camera_move=False,
+        )
 
         self.wait(1)
-        # 当你想停止相机跟随时
         '''
+        # 当你想停止相机跟随时
         self.camera.frame.clear_updaters()
         # 现在attackers[7]移动不会再被跟随
         '''
