@@ -486,10 +486,11 @@ class RectangleAroundScene(MovingCameraScene):
             grid.add_updater(update_grid)
             return grid
 
+        '''
         # 使用方法
         camera_grid = create_camera_grid(self)
         self.add(camera_grid)
-
+        '''
         # 创建一个长方形，宽度为场景宽度，高度为场景高度
         '''
         rectangle = Rectangle(width=GROUND_WIDTH, height=GROUND_LENGTH, color=BLUE)
@@ -501,10 +502,12 @@ class RectangleAroundScene(MovingCameraScene):
         Create(dashed_line_down)
         shu_ground = VGroup(rectangle,dashed_line_up,dashed_line_down)
         '''
+        grid2 = NumberPlane()
+        self.add(grid2)
 
         # 添加网格作为参考
-        grid = NumberPlane(x_range=[-6, 6], y_range=[-4, 4])
-        self.add(grid)
+        grid1 = NumberPlane(x_range=[-6, 6], y_range=[-4, 4])
+        self.add(grid1)
 
 
         # scene1
