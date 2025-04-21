@@ -1,9 +1,33 @@
 from manim import *
 from config import *
 from frisbee_base import FrisbeeBaseScene
-Text.set_default(font="Kaiti")
+# Text.set_default(font="Kaiti") windows
+Text.set_default(font="STKaiti")
 class RectangleAroundScene(FrisbeeBaseScene):
     def construct(self):
+        def double_arrow(start, end, color=BLUE, stroke_width=2, tip_length=0.15, buff=0):
+           # 左箭头，从虚线指向砖块，尖端贴紧虚线
+            arrow1 = Arrow(
+                start=start,
+                end=end,
+                color=color,
+                stroke_width=2,
+                tip_length=0.15,
+                buff=0  # 尖端贴紧虚线
+            )
+
+            # 右箭头，从砖块指向虚线，尖端与砖块圆刚好相接
+            arrow2 = Arrow(
+                start=end,
+                end=start,
+                color=BLUE,
+                stroke_width=2,
+                tip_length=0.15,
+                buff=0  # 尖端刚好接触砖块圆边缘
+            )
+
+            self.play(FadeIn(arrow1),FadeIn(arrow2))
+            return arrow1, arrow2
         '''
         # 使用方法
         camera_grid = create_camera_grid(self)
@@ -23,12 +47,7 @@ class RectangleAroundScene(FrisbeeBaseScene):
         # 添加网格作为参考
         grid1 = NumberPlane(x_range=[-6, 6], y_range=[-4, 4])
         self.add(grid1)
-
-        # 将视角调整为刚好显示该长方形
-        self.camera.frame_width = config.frame_width
-        self.camera.frame_height = config.frame_height
-        self.camera.frame_center = ORIGIN  # 调整相机中心
-
+        
         # scene0
         # 中央大标题
         center_text = Text(
@@ -52,24 +71,93 @@ class RectangleAroundScene(FrisbeeBaseScene):
         dashed_line_Right = DashedLine(
             start = GROUND_RATIO * RIGHT * GROUND_LENGTH*32/100 + GROUND_RATIO * UP * GROUND_WIDTH/2,
             end = GROUND_RATIO * RIGHT * GROUND_LENGTH*32/100 + GROUND_RATIO * DOWN * GROUND_WIDTH/2)
-        width_label = MathTex("37m",font_size = 36).next_to(dashed_line_Left, RIGHT)  # 在上方标记长度
-        length_label = MathTex("64m",font_size = 36).next_to(rectangle1,DOWN)
-        depth_label = MathTex("18m",font_size = 36).next_to(rectangle1,DOWN)
-        depth_label.shift(LEFT *  GROUND_LENGTH * 0.6)
-
-        heng_ground = VGroup(rectangle1,dashed_line_Left,dashed_line_Right)
         
         self.play(Create(rectangle1))
         self.wait(0.5)
         self.play(Create(dashed_line_Left),run_time = 0.5)
         self.play(Create(dashed_line_Right),run_time = 0.5)
-        self.play(Create(width_label))
-        self.play(Create(length_label))
-        self.play(Create(depth_label))
+
+        central_zone=Text("Central Zone",font_size=36)
+        central_zone_chinese=Text("中场区域",font_size=36).next_to(central_zone, DOWN)
+        end_zone=Text("End Zone",font_size=36).next_to(dashed_line_Left,LEFT)
+        end_zone_chinese=Text("底线区域",font_size=36).next_to(end_zone, DOWN)
+
+        self.play(Write(central_zone))
+        self.play(Write(central_zone_chinese))
+        self.play(Write(end_zone))
+        self.play(Write(end_zone_chinese))
+        self.wait(1)
+
+        self.play(FadeOut(central_zone),FadeOut(central_zone_chinese),FadeOut(end_zone),FadeOut(end_zone_chinese))
+
         
+        double_arrow_ground_width=double_arrow(
+            start = dashed_line_Left.get_start() + LEFT * 0.3,
+            end = dashed_line_Left.get_end() + LEFT * 0.3,
+            color=BLUE,
+            stroke_width=2,
+            tip_length=0.15,
+            buff=0
+        )
+        width_label = MathTex("37m",font_size = 36).next_to(double_arrow_ground_width[0], LEFT)  # 在上方标记长度
+        self.play(Create(width_label))
+
+        double_arrow_ground_length=double_arrow(
+            start = dashed_line_Left.get_end() + DOWN * 0.3,
+            end = dashed_line_Right.get_end() + DOWN * 0.3,
+            color=BLUE,
+            stroke_width=2,
+            tip_length=0.15,
+            buff=0
+        )
+        length_label = MathTex("64m",font_size = 36).next_to(double_arrow_ground_length[0],DOWN)
+        self.play(Create(length_label))
+
+        double_arrow_ground_depth=double_arrow(
+            start=GROUND_RATIO * GROUND_LENGTH * LEFT/2 + GROUND_RATIO * DOWN * GROUND_WIDTH/2 + DOWN * 0.3,
+            end=dashed_line_Left.get_end() + DOWN * 0.3,
+            color=BLUE,
+            stroke_width=2,
+            tip_length=0.15,
+            buff=0
+        )
+        depth_label = MathTex("18m",font_size = 36).next_to(double_arrow_ground_depth[0],DOWN)
+        self.play(Create(depth_label))
+
+
+        heng_ground = VGroup(rectangle1,dashed_line_Left,dashed_line_Right)
+        
+
+        brick_mark_left = Circle(radius=FRISBEE_RADIUS,color=BLUE)
+        brick_mark_left.set_stroke(color=WHITE, width=2)
+        brick_mark_left.shift(np.array([-GROUND_RATIO * GROUND_LENGTH*14/100, 0, 0]))
+        brick_mark_right = Circle(radius=FRISBEE_RADIUS,color=BLUE)
+        brick_mark_right.set_stroke(color=WHITE, width=2)
+        brick_mark_right.shift(np.array([GROUND_RATIO * GROUND_LENGTH*14/100, 0, 0]))
+        self.play(Create(brick_mark_left))
+        self.play(Create(brick_mark_right))
+
+        dashed_line_pos = GROUND_RATIO * LEFT * GROUND_LENGTH*32/100
+        # 砖块左边位置
+        brick_left_pos = brick_mark_left.get_center()
+        double_arrow_brick_left_length = double_arrow(
+            start = dashed_line_pos,
+            end = brick_left_pos,
+            color=BLUE,
+            stroke_width=2,
+            tip_length=0.15,
+            buff=0
+        )
+
+        brick_label = MathTex("18m",font_size=36)
+        brick_label.next_to(double_arrow_brick_left_length[0], UP)
+        self.play(Write(brick_label))
+
         self.wait()
  
-        self.play(FadeOut(width_label), FadeOut(length_label), FadeOut(depth_label))
+        self.play(FadeOut(width_label), FadeOut(length_label), FadeOut(depth_label),FadeOut(brick_label)
+                ,FadeOut(double_arrow_ground_width[0]), FadeOut(double_arrow_ground_width[1]), FadeOut(double_arrow_ground_length[0]), FadeOut(double_arrow_ground_length[1]), FadeOut(double_arrow_ground_depth[0]), FadeOut(double_arrow_ground_depth[1]),FadeOut(double_arrow_brick_left_length[0]), FadeOut(double_arrow_brick_left_length[1]))
+        self.play(FadeOut(brick_mark_left), FadeOut(brick_mark_right))
         self.play(heng_ground.animate.rotate(-PI/2))
         self.play(heng_ground.animate.shift(DOWN * 2))
         self.play(heng_ground.animate.scale(2))  # 放大两倍

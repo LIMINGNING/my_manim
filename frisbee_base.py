@@ -19,7 +19,7 @@ class FrisbeeBaseScene(MovingCameraScene):
         circle = Circle(radius=PLAER_RADIUS,color=color)
         circle.set_fill(color=color,opacity=1)
         circle.set_stroke(color=WHITE, width=2)
-        number_text = Text(str(number),font_size=24,color=text_color)
+        number_text = MathTex(str(number),font_size=24,color=text_color)
         number_text.move_to(circle.get_center())
         return VGroup(circle, number_text)
         pass
