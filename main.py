@@ -502,8 +502,7 @@ class RectangleAroundScene(MovingCameraScene):
         Create(dashed_line_down)
         shu_ground = VGroup(rectangle,dashed_line_up,dashed_line_down)
         '''
-        grid2 = NumberPlane()
-        self.add(grid2)
+
 
         # 添加网格作为参考
         grid1 = NumberPlane(x_range=[-6, 6], y_range=[-4, 4])
@@ -619,13 +618,15 @@ class RectangleAroundScene(MovingCameraScene):
             defenders_group.add(defender[i])
 
         # 将2号攻击者移动到handler左边
-        attackers[2].move_to(handler.get_center() + LEFT)
+        attackers[2].shift(np.array([-2.5,-2.0,0]))
+        defender[2].next_to(attackers[2], UR,buff=0.02)
 
         # 显示2号攻击者
         self.play(FadeIn(attackers[2]))
+        self.play(FadeIn(defender[2]))
 
         # 将攻击者排成一竖排，2号距离handler约8-10m，间隔2m
-        self.position_attackers(handler, attackers, base_distance=1.8, interval=0.6)      
+        self.position_attackers(handler, attackers, base_distance=2.3, interval=0.6)      
         self.position_defenders(attackers, defender,offset_x=0.5, offset_y=-0.4, interval=0.8)
 
         # 显示所有defenders
@@ -671,6 +672,11 @@ class RectangleAroundScene(MovingCameraScene):
             target_player_movement=UP * 2,
             vertical_only=True
         )
+
+        self.wait(2)
+
+        grid2 = NumberPlane()
+        self.add(grid2)
 
         fly_frisbee(
             self,
