@@ -71,6 +71,7 @@ class RectangleAroundScene(FrisbeeBaseScene):
  
         self.play(FadeOut(width_label), FadeOut(length_label), FadeOut(depth_label))
         self.play(heng_ground.animate.rotate(-PI/2))
+        self.play(heng_ground.animate.shift(DOWN * 2))
         self.play(heng_ground.animate.scale(2))  # 放大两倍
 
         # scene2
@@ -237,7 +238,7 @@ class RectangleAroundScene(FrisbeeBaseScene):
             is_camera_move=False,
         )
         # 示例1：让攻击者向左移动1个单位，使用左弧线路径，相机垂直跟随
-        self.move_player(attackers[6], LEFT, path_type="left", run_time=1.5, is_camera_follow=True, vertical_only=True)
+        self.move_player(attackers[6], LEFT, path_type="right", run_time=1.5, is_camera_follow=True, vertical_only=True)
 
         # 示例2：移动到场地上的特定位置，相机完全跟随
         target_pos = np.array([2.0, 1.5, 0])
@@ -250,9 +251,9 @@ class RectangleAroundScene(FrisbeeBaseScene):
         self.move_player(attackers[3], DOWN*3, highlight=True, is_camera_follow=True, target_camera_pos=np.array([0, -1, 0]))
         
         target_pos = np.array([-2, 8, 0])
-        self.move_player(handler, target_pos, highlight=True, path_type="right", is_camera_follow=True, vertical_only=False)
+        self.move_player(handler, target_pos, highlight=True, path_type="right", is_camera_follow=True, vertical_only=True)
         
-        self.move_camera_to_player(attackers[7],vertical_only=False,run_time=1.5,target_camera_pos=None)
+        self.move_camera_to_player(attackers[7],vertical_only=True,run_time=1.5,target_camera_pos=None)
 
         self.fly_frisbee(frisbee,attackers[7],handler,LEFT,flight_type="left",run_time=1.5,arc_angle=PI/2,target_player_movement=DOWN * 2,is_camera_move=True,highlight_player=True)
 
