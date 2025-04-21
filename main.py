@@ -4,7 +4,7 @@ from config import *
 
 GROUND_WIDTH = (config.frame_height - 0.1)*37/100
 GROUND_LENGTH = config.frame_height - 0.1
-BIGGER_GROUND = 1.5
+GROUND_RATIO = 1.5
 PLAER_RADIUS = 0.15
 FRISBEE_RADIUS = 0.1
 
@@ -114,56 +114,6 @@ class RectangleAroundScene(MovingCameraScene):
             frisbee_position = player_center + dir_unit * distance
             
             return frisbee_position
-        
-
-            """
-            控制飞盘按指定路径飞行到目标玩家的指定方向
-            
-            参数:
-            frisbee - 飞盘对象
-            target_player - 目标玩家对象
-            direction - 飞盘最终相对于玩家的方向（LEFT、RIGHT等）
-            flight_type - 飞行类型：'left'(左弧线)、'right'(右弧线)或'straight'(直线)
-            run_time - 动画时长
-            arc_angle - 弧线角度大小(仅用于弧线飞行)
-            """
-            # 获取起点和终点
-            start_point = frisbee.get_center()
-            end_point = get_frisbee_position(self, target_player, direction, frisbee)
-            
-            # 根据飞行类型创建路径
-            if flight_type == "left":
-                # 左弧线飞行
-                path = ArcBetweenPoints(
-                    start_point,
-                    end_point,
-                    angle=-arc_angle  # 负值表示向左弧线
-                )
-                
-            elif flight_type == "right":
-                # 右弧线飞行
-                path = ArcBetweenPoints(
-                    start_point,
-                    end_point,
-                    angle=arc_angle  # 正值表示向右弧线
-                )
-                
-            else:  # straight
-                # 直线飞行
-                path = Line(start_point, end_point)
-            
-            # 飞盘沿路径飞行动画
-            self.play(
-                MoveAlongPath(frisbee, path),
-                run_time=run_time,
-                rate_func=smooth
-            )
-            
-            # 将飞盘移动到精确位置
-            frisbee.move_to(end_point)
-            
-            high_light_player(target_player)  # 高亮目标玩家
-            return end_point  # 返回飞盘最终位置
 
         def high_light_player(target_player):
             '''
@@ -510,14 +460,14 @@ class RectangleAroundScene(MovingCameraScene):
 
 
         # scene1
-        rectangle1 = Rectangle(width=BIGGER_GROUND * GROUND_LENGTH,height=BIGGER_GROUND * GROUND_WIDTH,color=BLUE)
+        rectangle1 = Rectangle(width=GROUND_RATIO * GROUND_LENGTH,height=GROUND_RATIO * GROUND_WIDTH,color=BLUE)
         
         dashed_line_Left = DashedLine(
-            start = BIGGER_GROUND * LEFT * GROUND_LENGTH*32/100 + BIGGER_GROUND * UP * GROUND_WIDTH/2,
-            end = BIGGER_GROUND * LEFT * GROUND_LENGTH*32/100 + BIGGER_GROUND * DOWN * GROUND_WIDTH/2)
+            start = GROUND_RATIO * LEFT * GROUND_LENGTH*32/100 + GROUND_RATIO * UP * GROUND_WIDTH/2,
+            end = GROUND_RATIO * LEFT * GROUND_LENGTH*32/100 + GROUND_RATIO * DOWN * GROUND_WIDTH/2)
         dashed_line_Right = DashedLine(
-            start = BIGGER_GROUND * RIGHT * GROUND_LENGTH*32/100 + BIGGER_GROUND * UP * GROUND_WIDTH/2,
-            end = BIGGER_GROUND * RIGHT * GROUND_LENGTH*32/100 + BIGGER_GROUND * DOWN * GROUND_WIDTH/2)
+            start = GROUND_RATIO * RIGHT * GROUND_LENGTH*32/100 + GROUND_RATIO * UP * GROUND_WIDTH/2,
+            end = GROUND_RATIO * RIGHT * GROUND_LENGTH*32/100 + GROUND_RATIO * DOWN * GROUND_WIDTH/2)
         width_label = MathTex("37m",font_size = 36).next_to(dashed_line_Left, RIGHT)  # 在上方标记长度
         length_label = MathTex("64m",font_size = 36).next_to(rectangle1,DOWN)
         depth_label = MathTex("18m",font_size = 36).next_to(rectangle1,DOWN)
@@ -577,6 +527,8 @@ class RectangleAroundScene(MovingCameraScene):
         self.play(Write(defenders_label))
         self.wait(2)
 
+        self.play(FadeOut(direction_of_attack), FadeOut(direction_of_attack_label),FadeOut(tuli_attackers), FadeOut(attackers_label),FadeOut(tuli_defender), FadeOut(defenders_label))
+
         # scene3: frisbee and handler
         frisbee = Circle(radius=FRISBEE_RADIUS,color=WHITE)
         handler = self.create_player(1,RED,WHITE)
@@ -600,6 +552,16 @@ class RectangleAroundScene(MovingCameraScene):
             )
         )
 
+        rectangle_breakside = Rectangle(width=GROUND_RATIO * GROUND_WIDTH,height=2.8*2,color=BLUE)
+        rectangle_breakside.set_fill(color=RED,opacity=0.5)
+        rectangle_breakside.shift(np.array([-GROUND_RATIO * GROUND_WIDTH/2, 0, 0]))
+        self.play(FadeIn(rectangle_breakside))
+
+        rectangle_openside = Rectangle(width=GROUND_RATIO * GROUND_WIDTH,height=2.8*2,color=BLUE)
+        rectangle_openside.set_fill(color=BLUE,opacity=0.5)
+        rectangle_openside.shift(np.array([GROUND_RATIO * GROUND_WIDTH/2, 0, 0]))
+        self.play(FadeIn(rectangle_openside))
+        
         # scene4: attackers and defenders
         attackers = {}
         for i in range(2,8):
