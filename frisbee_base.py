@@ -413,3 +413,29 @@ class FrisbeeBaseScene(MovingCameraScene):
             self.high_light_player(player)
         
         return shift_vector  # 返回位移向量以便后续使用
+        pass
+
+    def double_arrow(self, start, end, color=BLUE, stroke_width=2, tip_length=0.15, buff=0):
+        # 左箭头，从虚线指向砖块，尖端贴紧虚线
+        arrow1 = Arrow(
+            start=start,
+            end=end,
+            color=color,
+            stroke_width=2,
+            tip_length=0.15,
+            buff=0  # 尖端贴紧虚线
+        )
+
+        # 右箭头，从砖块指向虚线，尖端与砖块圆刚好相接
+        arrow2 = Arrow(
+            start=end,
+            end=start,
+            color=BLUE,
+            stroke_width=2,
+            tip_length=0.15,
+            buff=0  # 尖端刚好接触砖块圆边缘
+        )
+
+        self.play(FadeIn(arrow1),FadeIn(arrow2))
+        return arrow1, arrow2
+        pass
