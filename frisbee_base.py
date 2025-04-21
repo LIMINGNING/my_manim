@@ -290,6 +290,7 @@ class FrisbeeBaseScene(MovingCameraScene):
         @example: move_camera_to_player(player)
         @note: 该函数将相机移动到目标玩家的指定位置
         @note: vertical_only参数决定是否只在垂直方向跟随
+        @note: 可以指定相机位置，然后移动
         '''
         if target_camera_pos is not None:
             # 如果提供了目标相机位置，使用它
