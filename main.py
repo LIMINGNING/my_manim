@@ -1,8 +1,7 @@
 from manim import *
 from config import *
 from frisbee_base import FrisbeeBaseScene
-# 设置默认分辨率
-
+Text.set_default(font="Kaiti")
 class RectangleAroundScene(FrisbeeBaseScene):
     def construct(self):
         '''
@@ -21,12 +20,28 @@ class RectangleAroundScene(FrisbeeBaseScene):
         Create(dashed_line_down)
         shu_ground = VGroup(rectangle,dashed_line_up,dashed_line_down)
         '''
-
-
         # 添加网格作为参考
         grid1 = NumberPlane(x_range=[-6, 6], y_range=[-4, 4])
         self.add(grid1)
 
+        # 将视角调整为刚好显示该长方形
+        self.camera.frame_width = config.frame_width
+        self.camera.frame_height = config.frame_height
+        self.camera.frame_center = ORIGIN  # 调整相机中心
+
+        # scene0
+        # 中央大标题
+        center_text = Text(
+            "飞盘战术分析",
+            font_size=60)
+        UD_text = Text(
+            "李明柠",
+            font_size=45)
+        UD_text.shift(DOWN * 2 + RIGHT * 3)
+        # 先显示中央标题
+        self.play(Write(center_text),Write(UD_text))
+        self.wait(1)
+        self.play(FadeOut(center_text),FadeOut(UD_text))
 
         # scene1
         rectangle1 = Rectangle(width=GROUND_RATIO * GROUND_LENGTH,height=GROUND_RATIO * GROUND_WIDTH,color=BLUE)
@@ -43,12 +58,6 @@ class RectangleAroundScene(FrisbeeBaseScene):
         depth_label.shift(LEFT *  GROUND_LENGTH * 0.6)
 
         heng_ground = VGroup(rectangle1,dashed_line_Left,dashed_line_Right)
-
-
-        # 将视角调整为刚好显示该长方形
-        self.camera.frame_width = config.frame_width
-        self.camera.frame_height = config.frame_height
-        self.camera.frame_center = ORIGIN  # 调整相机中心
         
         self.play(Create(rectangle1))
         self.wait(0.5)
@@ -164,7 +173,97 @@ class RectangleAroundScene(FrisbeeBaseScene):
         self.play(FadeIn(defenders_group),FadeIn(attackers_group))
         
         self.wait(2)
+        # 玩家同时移动，相机跟随
+        self.fly_frisbee(
+            frisbee,
+            handler,
+            attackers[7],
+            LEFT,
+            flight_type="left",
+            run_time=1.5,
+            arc_angle=PI/2,
+            target_player_movement=UP * 2,
+            vertical_only=True
+        )
 
+        self.wait(2)
+
+        rewind_text = Tex("REWIND",font_size=36)
+        rewind_re=Rectangle(color=BLUE)
+        rewind_re.surround(rewind_text)
+        group_rewind=VGroup(rewind_text,rewind_re)
+        
+        # 添加updater使其始终跟随相机中心
+        def update_rewind_position(mob):
+            # 获取当前相机中心在场景中的位置
+            camera_center = self.camera.frame.get_center()
+            # 让REWIND始终位于相机中心
+            mob.move_to(camera_center)
+
+        # 添加updater
+        group_rewind.add_updater(update_rewind_position)
+
+        # 显示REWIND
+        self.play(FadeIn(group_rewind))
+
+        # 执行飞盘动画，REWIND会自动跟随相机
+        self.fly_frisbee(
+            frisbee,
+            attackers[7],
+            handler,
+            LEFT,
+            handler_movement=DOWN * 2,
+            flight_type="right",
+            run_time=1.5,
+            arc_angle=PI/2,
+            vertical_only=True,
+            target_camera_pos=ORIGIN,
+            highlight_player=False
+        )
+
+        # 移除updater并淡出
+        group_rewind.clear_updaters()
+        self.play(FadeOut(group_rewind), run_time=1.5)
+
+        self.fly_frisbee(
+            frisbee,
+            handler,
+            attackers[7],
+            LEFT,
+            handler_movement=RIGHT * 2,
+            flight_type="left",
+            run_time=1.5,
+            arc_angle=PI/2,
+            is_camera_move=False,
+        )
+        # 示例1：让攻击者向左移动1个单位，使用左弧线路径，相机垂直跟随
+        self.move_player(attackers[6], LEFT, path_type="left", run_time=1.5, is_camera_follow=True, vertical_only=True)
+
+        # 示例2：移动到场地上的特定位置，相机完全跟随
+        target_pos = np.array([2.0, 1.5, 0])
+        self.move_player(handler, target_pos, path_type="right",is_camera_follow=True, vertical_only=False)
+
+        # 示例3：使用向量组合，让防守者向右上方移动，不跟随相机
+        self.move_player(defender[5], RIGHT*2 + UP, path_type="straight", is_camera_follow=False)
+
+        # 示例4：移动并高亮显示，自定义相机位置
+        self.move_player(attackers[3], DOWN*3, highlight=True, is_camera_follow=True, target_camera_pos=np.array([0, -1, 0]))
+        
+        target_pos = np.array([-2, 8, 0])
+        self.move_player(handler, target_pos, highlight=True, path_type="right", is_camera_follow=True, vertical_only=False)
+        
+        self.move_camera_to_player(attackers[7],vertical_only=False,run_time=1.5,target_camera_pos=None)
+
+        self.fly_frisbee(frisbee,attackers[7],handler,LEFT,flight_type="left",run_time=1.5,arc_angle=PI/2,target_player_movement=DOWN * 2,is_camera_move=True,highlight_player=True)
+
+        self.move_camera_to_player(
+            attackers[7],
+            vertical_only=True,
+            run_time=1.5,
+            target_camera_pos=None
+        )
+
+        self.wait(1)
         '''
         # 平滑地将相机中心移动到attackers[7]
         self.play(
@@ -189,84 +288,7 @@ class RectangleAroundScene(FrisbeeBaseScene):
 
         # 使用平滑跟随函数
         self.camera.frame.add_updater(smooth_follow)
-        '''
-        # 玩家同时移动，相机跟随
-        self.fly_frisbee(
-            frisbee,
-            handler,
-            attackers[7],
-            LEFT,
-            flight_type="left",
-            run_time=1.5,
-            arc_angle=PI/2,
-            target_player_movement=UP * 2,
-            vertical_only=True
-        )
-
-        self.wait(2)
-
-        grid2 = NumberPlane()
-        self.add(grid2)
-
-        self.fly_frisbee(
-            frisbee,
-            attackers[7],
-            handler,
-            LEFT,
-            handler_movement=DOWN * 2,
-            flight_type="right",
-            run_time=1.5,
-            arc_angle=PI/2,
-            vertical_only=True,
-            target_camera_pos=ORIGIN,
-            highlight_player=False
-        )
-
-        self.fly_frisbee(
-            frisbee,
-            handler,
-            attackers[7],
-            LEFT,
-            handler_movement=RIGHT * 2,
-            flight_type="left",
-            run_time=1.5,
-            arc_angle=PI/2,
-            is_camera_move=False,
-        )
-
-        # 示例1：让攻击者向左移动1个单位，使用左弧线路径，相机垂直跟随
-        self.move_player(attackers[6], LEFT, path_type="left", run_time=1.5, 
-                    is_camera_follow=True, vertical_only=True)
-
-        # 示例2：移动到场地上的特定位置，相机完全跟随
-        target_pos = np.array([2.0, 1.5, 0])
-        self.move_player(handler, target_pos, path_type="right", 
-                    is_camera_follow=True, vertical_only=False)
-
-        # 示例3：使用向量组合，让防守者向右上方移动，不跟随相机
-        self.move_player(defender[5], RIGHT*2 + UP, path_type="straight", 
-                    is_camera_follow=False)
-
-        # 示例4：移动并高亮显示，自定义相机位置
-        self.move_player(attackers[3], DOWN*3, highlight=True, 
-                    is_camera_follow=True, target_camera_pos=np.array([0, -1, 0]))
-        target_pos = np.array([-2, 8, 0])
-        self.move_player(handler, target_pos, highlight=True, path_type="right", 
-                    is_camera_follow=True, vertical_only=False)
         
-        self.move_camera_to_player(attackers[7],vertical_only=False,run_time=1.5,target_camera_pos=None)
-
-        self.fly_frisbee(frisbee,attackers[7],handler,LEFT,flight_type="left",run_time=1.5,arc_angle=PI/2,target_player_movement=DOWN * 2,is_camera_move=True,highlight_player=True)
-
-        self.move_camera_to_player(
-            attackers[7],
-            vertical_only=True,
-            run_time=1.5,
-            target_camera_pos=None
-        )
-
-        self.wait(1)
-        '''
         # 当你想停止相机跟随时
         self.camera.frame.clear_updaters()
         # 现在attackers[7]移动不会再被跟随
