@@ -123,46 +123,4 @@ class scene1(FrisbeeBaseScene):
         self.wait(0.5)
 
         self.play(FadeOut(rectangle_openside),FadeOut(openside_label),FadeOut(openside_label_chinese))
-
-        #scene3
-        direction_of_attack = DashedArrow(
-            start = np.array([-3.5, 2.2, 0]),
-            end = np.array([-3.5, 3.2, 0]),
-            color=WHITE,
-            buff=0,
-            stroke_width=3,
-            tip_length=0.2
-        )
-        direction_of_attack_label = MathTex("Direction\ of\ attack", font_size=32).next_to(direction_of_attack, RIGHT)
-        direction_of_attack_label_chinese=Text("进攻方向", font_size=24).next_to(direction_of_attack_label, RIGHT)
-        self.play(Create(direction_of_attack))
-        self.play(Write(direction_of_attack_label))
-        self.play(Write(direction_of_attack_label_chinese))
-
-        tuli_attackers = Circle(radius=PLAER_RADIUS,color=RED) 
-        tuli_attackers.set_fill(color=RED,opacity=1)
-        tuli_attackers.set_stroke(color=WHITE, width=2)
-
-        tuli_defender = Circle(radius=PLAER_RADIUS,color=BLUE) 
-        tuli_defender.set_fill(color=BLUE,opacity=1)
-        tuli_defender.set_stroke(color=WHITE, width=2)
-
-        tuli_attackers.next_to(direction_of_attack, DOWN)
-        tuli_defender.next_to(tuli_attackers, DOWN)
-        attackers_label = MathTex("Attackers", font_size=32).next_to(tuli_attackers, RIGHT)
-        attackers_label_chinese=Text("进攻方", font_size=24).next_to(attackers_label, RIGHT)
-        defenders_label = MathTex("Defenders", font_size=32).next_to(tuli_defender, RIGHT)
-        defenders_label_chinese=Text("防守方", font_size=24).next_to(defenders_label, RIGHT)
-
-        self.play(Create(tuli_attackers))
-        self.play(Write(attackers_label))
-        self.play(Write(attackers_label_chinese))
-        self.play(Create(tuli_defender))
-        self.play(Write(defenders_label))
-        self.play(Write(defenders_label_chinese))
-        self.wait(2)
-
-        self.play(FadeOut(direction_of_attack_label_chinese),FadeOut(attackers_label_chinese),FadeOut(defenders_label_chinese))
-        self.play(FadeOut(direction_of_attack_label),FadeOut(attackers_label),FadeOut(defenders_label))
-        self.play(FadeOut(tuli_attackers), FadeOut(tuli_defender),FadeOut(direction_of_attack))
         self.wait(2)

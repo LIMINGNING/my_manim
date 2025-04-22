@@ -121,13 +121,4 @@ class scene2(FrisbeeBaseScene):
         # 添加updater
         legend_with_bg.add_updater(update_position)
 
-        circle = Circle(radius=PLAER_RADIUS,color=WHITE)
-        circle.set_stroke(color=WHITE, width=2)
-
-        self.wait(2)
-
-        handler=Circle(radius=PLAER_RADIUS,color=YELLOW)
-        handler.set_fill(color=YELLOW,opacity=1)
-        self.play(Create(handler))
-        self.move_player(handler, np.array([-4, 5.5, 0]), is_camera_follow=True, vertical_only=True)
         self.wait(2)

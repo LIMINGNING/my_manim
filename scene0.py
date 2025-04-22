@@ -2,7 +2,7 @@ from manim import *
 from config import *
 from frisbee_base import FrisbeeBaseScene
 
-Text.set_default(font="Kaiti")
+Text.set_default(font="STKaiti")
 
 class scene0(FrisbeeBaseScene):
     def construct(self):
@@ -81,6 +81,7 @@ class scene0(FrisbeeBaseScene):
             tip_length=0.15,
             buff=0
         )
+        self.play(FadeIn(double_arrow_ground_width))
         width_label = MathTex("37m",font_size = 36).next_to(double_arrow_ground_width[0], LEFT)  # 在上方标记长度
         self.play(Create(width_label))
 
@@ -92,6 +93,7 @@ class scene0(FrisbeeBaseScene):
             tip_length=0.15,
             buff=0
         )
+        self.play(FadeIn(double_arrow_ground_length))
         length_label = MathTex("64m",font_size = 36).next_to(double_arrow_ground_length[0],DOWN)
         self.play(Create(length_label))
 
@@ -103,6 +105,7 @@ class scene0(FrisbeeBaseScene):
             tip_length=0.15,
             buff=0
         )
+        self.play(FadeIn(double_arrow_ground_depth))
         depth_label = MathTex("18m",font_size = 36).next_to(double_arrow_ground_depth[0],DOWN)
         self.play(Create(depth_label))
 
@@ -134,6 +137,7 @@ class scene0(FrisbeeBaseScene):
             tip_length=0.15,
             buff=0
         )
+        self.play(FadeIn(double_arrow_brick_left_length))
 
         brick_label = MathTex("18m",font_size=36)
         brick_label.next_to(double_arrow_brick_left_length[0], UP)
@@ -147,3 +151,5 @@ class scene0(FrisbeeBaseScene):
         self.play(heng_ground.animate.rotate(-PI/2))
         self.play(heng_ground.animate.shift(DOWN * 2))
         self.play(heng_ground.animate.scale(2))  # 放大两倍
+
+        self.wait(2)
