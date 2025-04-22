@@ -429,6 +429,34 @@ class RectangleAroundScene(FrisbeeBaseScene):
             target_camera_pos=ORIGIN
         )
 
+        # 示例：同时移动多个玩家，并让摄像机跟随第一个玩家
+        self.move_multiple_players([
+            (attackers[6], np.array([1,6,0]), False),  # 第1个玩家
+            (defender[6], np.array([1.4,5.6,0]), False)    # 第2个玩家
+        ], 
+        run_time=1.5,
+        path_type="straight",      
+        is_camera_follow=True, 
+        camera_follow_index=0, 
+        vertical_only=True    
+        )
+
+        self.wait(0.5)
+
+        self.move_multiple_players([
+            (attackers[6], origin_pos_attacker[6], False),  # 第1个玩家
+            (defender[6], origin_pos_defender[6], False)    # 第2个玩家
+        ],
+        run_time=1.5,
+        path_type="straight",      
+        is_camera_follow=True, 
+        camera_follow_index=0, 
+        vertical_only=True,
+        target_camera_pos=ORIGIN
+        )
+
+        self.wait(0.5)
+
         self.fly_frisbee(
             frisbee=frisbee,
             handler=attackers[7],

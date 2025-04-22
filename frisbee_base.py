@@ -359,26 +359,70 @@ class FrisbeeBaseScene(MovingCameraScene):
             return None
         pass
 
-    def move_multiple_players(self, players_and_positions, run_time=1.0, path_type="straight"):
+    def move_multiple_players(self, players_and_positions, run_time=1.0, path_type="straight", 
+                         arc_angle=PI/2, is_camera_follow=False, camera_follow_index=0, 
+                         vertical_only=True, target_camera_pos=None):
         """
         同时移动多个玩家
         
         参数:
         players_and_positions - 列表，每项为 (player, position, is_relative) 元组
+        run_time - 动画时长
+        path_type - 路径类型：'left'(左弧线)、'right'(右弧线)或'straight'(直线)
+        arc_angle - 弧线角度大小(仅用于弧线移动)
+        is_camera_follow - 是否让摄像机跟随某个玩家
+        camera_follow_index - 跟随玩家列表中的第几个玩家(索引)
+        vertical_only - 是否只在垂直方向跟随(保持X坐标不变)
+        target_camera_pos - 自定义相机目标位置，如果提供则忽略camera_follow_index
         """
         all_animations = []
+        end_points = []
+        
+        # 首先计算所有玩家的终点位置
+        for player, position, is_relative in players_and_positions:
+            if is_relative:
+                end_point = player.get_center() + position
+            else:
+                end_point = position
+            end_points.append(end_point)
+        
+        # 确定相机目标位置
+        if is_camera_follow:
+            if target_camera_pos is not None:
+                camera_target = target_camera_pos
+            else:
+                # 使用跟随玩家的终点位置
+                player_end_point = end_points[camera_follow_index]
+                current_camera_pos = self.camera.frame.get_center()
+                
+                if vertical_only:
+                    camera_target = np.array([
+                        current_camera_pos[0],
+                        player_end_point[1],
+                        current_camera_pos[2]
+                    ])
+                else:
+                    camera_target = player_end_point
+                    
+            # 添加相机动画
+            camera_anim = self.camera.frame.animate.move_to(camera_target)
+            all_animations.append(camera_anim)
         
         # 收集所有玩家的移动动画
-        for player, position, is_relative in players_and_positions:
-            # 获取移动动画但不立即执行
-            anims, _ = self.move_player(
-                player, 
-                position, 
-                path_type=path_type,
-                is_relative=is_relative, 
-                return_animations=True
-            )
-            all_animations.extend(anims)
+        for i, (player, position, is_relative) in enumerate(players_and_positions):
+            # 创建路径
+            start_point = player.get_center()
+            end_point = end_points[i]
+            
+            if path_type == "left":
+                path = ArcBetweenPoints(start_point, end_point, angle=-arc_angle)
+            elif path_type == "right":
+                path = ArcBetweenPoints(start_point, end_point, angle=arc_angle)
+            else:  # "straight"
+                path = Line(start_point, end_point)
+                
+            # 添加移动动画
+            all_animations.append(MoveAlongPath(player, path))
         
         # 同时执行所有动画
         self.play(
@@ -388,11 +432,8 @@ class FrisbeeBaseScene(MovingCameraScene):
         )
         
         # 确保所有玩家都准确到位
-        for player, position, is_relative in players_and_positions:
-            if is_relative:
-                player.move_to(player.get_center() + position)
-            else:
-                player.move_to(position)
+        for i, (player, position, is_relative) in enumerate(players_and_positions):
+            player.move_to(end_points[i])
         pass
 
     def double_arrow(self, start, end, color=BLUE, stroke_width=2, tip_length=0.15, buff=0):
