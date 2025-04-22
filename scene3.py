@@ -179,4 +179,133 @@ class scene3(FrisbeeBaseScene):
 
         self.wait(2)
 
+        attacker_target_pos = np.array([1.5, 2.2, 0])
+        temp_attacker = attackers[7].copy()
+        temp_attacker.move_to(attacker_target_pos)
+        temp_defender = defender[7].copy()
+        temp_defender.next_to(temp_attacker, RIGHT, buff=0.1)
+        defender_target_pos = temp_defender.get_center()
+        self.move_multiple_players([
+            (attackers[7], attacker_target_pos, False),
+            (defender[7], defender_target_pos, False)
+        ], run_time=1.5)
+
+        self.wait(1)
+
+        posp1=attackers[7].get_center()
+        posp2=defender[7].get_center()
+        posp3=handler.get_center()
+        arrp1=Arrow(
+            start=posp1,
+            end=np.array([2, -1,0]),
+            color=RED,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.15
+        )
+        arrp2=Arrow(
+            start=posp2,
+            end=np.array([2, -1,0]),
+            color=BLUE,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.15
+        )
+        arrow3=Arrow(
+            start=posp3,
+            end=np.array([2, -1,0]),
+            color=ORANGE,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.15
+        )
+        can_dothat=MathTex("Easy\ to\ be\ defended", font_size=32).next_to(arrp2, RIGHT,buff=0.5)
+        self.play(Create(arrp1))
+        self.play(Create(arrp2))
+        self.play(Create(arrow3))
+        self.play(Write(can_dothat))
+        self.wait(0.5)
+        self.play(FadeOut(arrp1),FadeOut(arrp2),FadeOut(can_dothat),FadeOut(arrow3))
+        self.wait(2)
+
+        pos3=attackers[7].get_center()
+        arr_go_back_to_tail=Arrow(
+            start=pos3,
+            end=origin_pos_attacker[7],
+            color=BLUE,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.15
+        )
+        go_back_to_tail=MathTex("Go\ back\ to\ tail", font_size=32).next_to(attackers[7], UP,buff=0.5)
+        self.play(Create(arr_go_back_to_tail))
+        self.play(Write(go_back_to_tail))
+        self.play(FadeOut(arr_go_back_to_tail),FadeOut(go_back_to_tail))
+        self.wait(1)
+
+        self.move_multiple_players([
+            (attackers[7], origin_pos_attacker[7], False),  # 第1个玩家
+            (defender[7], origin_pos_defender[7], False)    # 第2个玩家
+        ],
+        run_time=1.5,
+        path_type="straight",
+        is_camera_follow=False 
+        )
+        self.wait(1)
+
+        self.move_multiple_players([
+            (attackers[7], np.array([1,2.5,0]), False),  # 第1个玩家
+            (defender[7], np.array([1.5,2,0]), False)    # 第2个玩家
+        ], 
+        run_time=1.5,
+        path_type="straight",      
+        is_camera_follow=False 
+        )
+
+        pos1=attackers[7].get_center()
+        pos2=handler.get_center()
+        arr1=Arrow(
+            start=pos1,
+            end=np.array([2.5, 1,0]),
+            color=BLUE,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.15
+        )
+        arr2=Arrow(
+            start=pos2,
+            end=np.array([2.5, 1,0]),
+            color=ORANGE,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.15
+        )
+        cannot_dothat=MathTex("Cannot\ do\ that", font_size=32).next_to(arr1, RIGHT,buff=0.5)
+        self.play(Create(arr1))
+        self.play(Create(arr2))
+        self.play(Write(cannot_dothat))
+        
+        self.play(FadeOut(arr1),FadeOut(arr2),FadeOut(cannot_dothat))
+
+        pos4=attackers[7].get_center()
+        arr_go_back_to_tail=Arrow(
+            start=pos4,
+            end=origin_pos_attacker[7],
+            color=BLUE,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.15
+        )
+
+        self.move_multiple_players([
+            (attackers[7], origin_pos_attacker[7], False),  # 第1个玩家
+            (defender[7], origin_pos_defender[7], False)    # 第2个玩家
+        ], 
+        run_time=1.5,
+        path_type="straight",      
+        is_camera_follow=False 
+        )
+
+
+        self.wait(2)
         # scene5
