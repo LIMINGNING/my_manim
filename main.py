@@ -48,15 +48,30 @@ class RectangleAroundScene(FrisbeeBaseScene):
         self.play(heng_ground.animate.scale(2))  # 放大两倍
 
         # scene2: frisbee and handler
+        attackers = {}
+        for i in range(2,8):
+            attackers[i] = self.create_player(i,RED,WHITE)
+
+        defender = {}
+        for i in range(1,8):
+            defender[i] = self.create_player(i,BLUE,WHITE)
+        
+        attackers_group = VGroup()
+        for i in range(3,8):
+            attackers_group.add(attackers[i])
+
+        defenders_group = VGroup()
+        for i in range(3, 8):
+            defenders_group.add(defender[i])
+        
         frisbee = Circle(radius=FRISBEE_RADIUS,color=WHITE)
         handler = self.create_player(1,RED,WHITE)
 
-        handler.shift(np.array([0, -2.8, 0]))
+        handler.shift(np.array([0, -2.2, 0]))
         frisbee_position = self.get_frisbee_position(handler, RIGHT, frisbee)
         frisbee.move_to(frisbee_position)
-        self.play(FadeIn(handler))
-        self.wait(1)
-        self.play(FadeIn(frisbee))
+        defender[1].next_to(handler,UL, buff=0.02)
+        self.play(FadeIn(handler),FadeIn(frisbee),FadeIn(defender[1]))
         self.wait(0.5)
 
         # scene3
@@ -136,29 +151,10 @@ class RectangleAroundScene(FrisbeeBaseScene):
         self.wait(2)
 
         # scene4: attackers and defenders
-        attackers = {}
-        for i in range(2,8):
-            attackers[i] = self.create_player(i,RED,WHITE)
-
-        defender = {}
-        for i in range(1,8):
-            defender[i] = self.create_player(i,BLUE,WHITE)
-        
-        attackers_group = VGroup()
-        for i in range(3,8):
-            attackers_group.add(attackers[i])
-
-        defenders_group = VGroup()
-        for i in range(3, 8):
-            defenders_group.add(defender[i])
-
-        defender[1].next_to(handler,UL, buff=0.02)
-        self.play(FadeIn(defender[1]))
-
         self.wait(0.5)
 
         # 将2号攻击者移动到handler左边
-        attackers[2].shift(np.array([-2.5,-2.0,0]))
+        attackers[2].shift(np.array([-2.5,-1.4,0]))
         defender[2].next_to(attackers[2], UR,buff=0.02)
 
         # 显示2号攻击者

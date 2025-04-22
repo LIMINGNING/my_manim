@@ -52,7 +52,7 @@ class scene1(FrisbeeBaseScene):
         frisbee = Circle(radius=FRISBEE_RADIUS,color=WHITE)
         handler = self.create_player(1,RED,WHITE)
 
-        handler.shift(np.array([0, -2.8, 0]))
+        handler.shift(np.array([0, -2.2, 0]))
         frisbee_position = self.get_frisbee_position(handler, LEFT, frisbee)
         frisbee.move_to(frisbee_position)
         self.play(FadeIn(handler))
@@ -99,9 +99,9 @@ class scene1(FrisbeeBaseScene):
         self.play(FadeOut(force_forehand_defence),FadeOut(force_forehand_defence_chinese))
 
         # breakside
-        rectangle_breakside = Rectangle(width=GROUND_RATIO * GROUND_WIDTH,height=2.8*2,color=BLUE)
+        rectangle_breakside = Rectangle(width=GROUND_RATIO * GROUND_WIDTH,height=2.6*2,color=BLUE)
         rectangle_breakside.set_fill(color=RED,opacity=0.5)
-        rectangle_breakside.shift(np.array([-GROUND_RATIO * GROUND_WIDTH/2, 0, 0]))
+        rectangle_breakside.shift(np.array([-GROUND_RATIO * GROUND_WIDTH/2, 0.4, 0]))
         self.play(FadeIn(rectangle_breakside))
 
         breakside_label = MathTex("Breakside",font_size=32)
@@ -127,9 +127,9 @@ class scene1(FrisbeeBaseScene):
         self.play(FadeOut(rectangle_breakside),FadeOut(breakside_label),FadeOut(breakside_label_chinese))
 
         # openside
-        rectangle_openside = Rectangle(width=GROUND_RATIO * GROUND_WIDTH,height=2.8*2,color=BLUE)
+        rectangle_openside = Rectangle(width=GROUND_RATIO * GROUND_WIDTH,height=2.6*2,color=BLUE)
         rectangle_openside.set_fill(color=BLUE,opacity=0.5)
-        rectangle_openside.shift(np.array([GROUND_RATIO * GROUND_WIDTH/2, 0, 0]))
+        rectangle_openside.shift(np.array([GROUND_RATIO * GROUND_WIDTH/2, 0.4, 0]))
         self.play(FadeIn(rectangle_openside))
 
         openside_label = MathTex("Open side",font_size=32)
