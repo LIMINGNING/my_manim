@@ -133,7 +133,7 @@ class scene1(FrisbeeBaseScene):
             stroke_width=3,
             tip_length=0.2
         )
-        direction_of_attack_label = MathTex("Direction of attack", font_size=32).next_to(direction_of_attack, RIGHT)
+        direction_of_attack_label = MathTex("Direction\ of\ attack", font_size=32).next_to(direction_of_attack, RIGHT)
         direction_of_attack_label_chinese=Text("进攻方向", font_size=24).next_to(direction_of_attack_label, RIGHT)
         self.play(Create(direction_of_attack))
         self.play(Write(direction_of_attack_label))
