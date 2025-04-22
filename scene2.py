@@ -121,6 +121,9 @@ class scene2(FrisbeeBaseScene):
         # 添加updater
         legend_with_bg.add_updater(update_position)
 
+        circle = Circle(radius=PLAER_RADIUS,color=WHITE)
+        circle.set_stroke(color=WHITE, width=2)
+
         self.wait(2)
 
         handler=Circle(radius=PLAER_RADIUS,color=YELLOW)
