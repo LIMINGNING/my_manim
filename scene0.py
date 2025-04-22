@@ -29,16 +29,22 @@ class scene0(FrisbeeBaseScene):
         # scene0
         # 中央大标题
         center_text = Text(
-            "飞盘战术分析",
+            "飞盘场地介绍与竖排战术",
             font_size=60)
+        center_text_english=MathTex("Frisbee\ Field\ Introduction\ and\ Vertical\ Tactics",font_size=36)
+        center_text_english.next_to(center_text, DOWN)
         UD_text = Text(
             "李明柠",
             font_size=45)
         UD_text.shift(DOWN * 2 + RIGHT * 3)
+        UD_text_english=MathTex("LIMINGNING",font_size=36)
+        UD_text_english.next_to(UD_text, DOWN)
         # 先显示中央标题
         self.play(Write(center_text),Write(UD_text))
+        self.play(Write(center_text_english),Write(UD_text_english))
         self.wait(1)
-        self.play(FadeOut(center_text),FadeOut(UD_text))
+        self.play(FadeOut(center_text),FadeOut(UD_text),FadeOut(center_text_english),FadeOut(UD_text_english))
+
 
         # scene1
         rectangle1 = Rectangle(width=GROUND_RATIO * GROUND_LENGTH,height=GROUND_RATIO * GROUND_WIDTH,color=BLUE)
