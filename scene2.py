@@ -114,13 +114,13 @@ class scene2(FrisbeeBaseScene):
         self.play(legend_with_bg.animate.shift(np.array([-1.8, 0, 0])))
 
         legend_with_bg_position=legend_with_bg.get_center()
-        def update_rewind_position(mob):
+        def update_position(mob):
             camera_center = self.camera.frame.get_center()
             offset=np.array([legend_with_bg_position[0],legend_with_bg_position[1],0])
             mob.move_to(camera_center + offset)
-
         # 添加updater
-        legend_with_bg.add_updater(update_rewind_position)
+        legend_with_bg.add_updater(update_position)
+
         self.wait(2)
 
         handler=Circle(radius=PLAER_RADIUS,color=YELLOW)
