@@ -252,9 +252,9 @@ class RectangleAroundScene(FrisbeeBaseScene):
             frisbee,
             attackers[7],
             handler,
-            LEFT,
+            RIGHT,
             handler_movement=DOWN * 2,
-            flight_type="right",
+            flight_type="left",
             run_time=1.5,
             arc_angle=PI/2,
             vertical_only=True,
@@ -266,7 +266,49 @@ class RectangleAroundScene(FrisbeeBaseScene):
         group_rewind.clear_updaters()
         self.play(FadeOut(group_rewind), run_time=1.5)
 
+        arrow1=Arrow(
+            start=attackers[7].get_center(),
+            end=np.array([1.5, 2.2, 0]),
+            color=BLUE,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.15
+        )
+        self.play(Create(arrow1))
+        self.wait(0.5)
+        self.play(FadeOut(arrow1))
 
+        self.play(defender[7].animate.next_to(attackers[7], UR, buff=0.02))
+        # 1. 首先为defender添加一个updater，让他始终跟随attacker
+        def update_defender_position(mob):
+            # 确保defender始终位于attacker的右上角
+            mob.next_to(attackers[7], UR, buff=0.02)
+
+        # 2. 添加updater
+        defender[7].add_updater(update_defender_position)
+
+        # 3. 只需要移动attacker，defender会自动跟随
+        self.move_player(
+            attackers[7],
+            np.array([1.5, 2.2, 0])
+        )
+
+        # 4. 动画结束后移除updater
+        defender[7].clear_updaters()
+
+        attackers7_end_position=np.array([3.5,0.5,0])
+        self.fly_frisbee(
+            frisbee,
+            handler,
+            attackers[7],
+            RIGHT,
+            flight_type="straight",
+            run_time=1.5,
+            arc_angle=PI/2,
+            target_player_movement=attackers7_end_position,
+            is_camera_move=False,
+            highlight_player=False
+        )
 
         self.wait(1)
         '''
