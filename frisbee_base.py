@@ -137,7 +137,7 @@ class FrisbeeBaseScene(MovingCameraScene):
         )
         pass
     
-    def fly_frisbee(self, frisbee, handler, target_player, direction, flight_type="left", run_time=1.5, arc_angle=PI/2,target_player_movement=None,handler_movement=None, is_camera_move = True, vertical_only=True, target_camera_pos=None, highlight_player=True):
+    def fly_frisbee(self, frisbee, handler, target_player, direction, flight_type="left", run_time=1.5, arc_angle=PI/2, target_player_movement=None, handler_movement=None, is_camera_move=True, vertical_only=True, target_camera_pos=None, highlight_player=True, is_relative=True):
         """
         飞盘飞行时相机跟随目标玩家，可选择是否只跟随垂直方向
         
@@ -148,16 +148,13 @@ class FrisbeeBaseScene(MovingCameraScene):
         @param flight_type: 飞行类型：'left'(左弧线)、'right'(右弧线)或'straight'(直线)
         @param run_time: 动画时长
         @param arc_angle: 弧线角度大小(仅用于弧线飞行)
-        @param target_player_movement: 目标玩家的移动向量（可选）
-        @param handler_movement: handler的移动向量（可选）
+        @param target_player_movement: 目标玩家的移动向量或目标位置
+        @param handler_movement: handler的移动向量或目标位置
         @param is_camera_move: 是否移动相机（默认True）
         @param vertical_only: 是否只在垂直方向跟随（默认True）
         @param target_camera_pos: 目标相机位置（可选）
         @param highlight_player: 是否高亮显示目标玩家（默认True）
-        @description: 控制飞盘按指定路径飞行到目标玩家的指定方向
-        @example: fly_frisbee(frisbee, handler, target_player, LEFT)
-        @note: 该函数将飞盘移动到目标玩家的指定方向，并可选择移动相机
-        @note: 飞盘和handler和目标玩家可以同时移动
+        @param is_relative: 玩家移动是相对位移(True)还是绝对位置(False)，默认True
         """
         # 获取起点
         start_point = frisbee.get_center()
@@ -166,7 +163,15 @@ class FrisbeeBaseScene(MovingCameraScene):
         if target_player_movement is not None:
             # 如果玩家同时移动，计算移动后的位置
             future_player = target_player.copy()
-            future_player.shift(target_player_movement)
+            
+            # 根据is_relative确定如何移动未来玩家位置
+            if is_relative:
+                # 相对位移
+                future_player.shift(target_player_movement)
+            else:
+                # 绝对位置
+                future_player.move_to(target_player_movement)
+                
             end_point = self.get_frisbee_position(future_player, direction, frisbee)
             future_position = future_player.get_center()
         else:
@@ -177,7 +182,15 @@ class FrisbeeBaseScene(MovingCameraScene):
         if handler_movement is not None:
             # 如果handler同时移动，计算移动后的位置
             future_handler = handler.copy()
-            future_handler.shift(handler_movement)
+            
+            # 根据is_relative确定如何移动未来handler位置
+            if is_relative:
+                # 相对位移
+                future_handler.shift(handler_movement)
+            else:
+                # 绝对位置
+                future_handler.move_to(handler_movement)
+                
             handler_position = future_handler.get_center()
         else:
             # handler不移动
@@ -192,22 +205,18 @@ class FrisbeeBaseScene(MovingCameraScene):
             path = Line(start_point, end_point)
         
         if is_camera_move:
-            # 计算相机目标位置
+            # 相机部分保持不变
             if target_camera_pos is not None:
-                # 如果提供了目标相机位置，使用它
                 target_camera_pos = target_camera_pos
             else:
-            # 获取当前相机位置
                 current_camera_pos = self.camera.frame.get_center()
                 if vertical_only:
-                    # 只在垂直方向跟随（保持X坐标不变）
                     target_camera_pos = np.array([
                         current_camera_pos[0], 
                         future_position[1], 
                         current_camera_pos[2]
                     ])
                 else:
-                    # 完全跟随到目标位置
                     target_camera_pos = future_position
             
             # 执行动画
@@ -216,10 +225,18 @@ class FrisbeeBaseScene(MovingCameraScene):
             ]
         
             if target_player_movement is not None:
-                animations.append(target_player.animate.shift(target_player_movement))
+                # 根据is_relative决定使用shift还是move_to
+                if is_relative:
+                    animations.append(target_player.animate.shift(target_player_movement))
+                else:
+                    animations.append(target_player.animate.move_to(target_player_movement))
             
             if handler_movement is not None:
-                animations.append(handler.animate.shift(handler_movement))
+                # 根据is_relative决定使用shift还是move_to
+                if is_relative:
+                    animations.append(handler.animate.shift(handler_movement))
+                else:
+                    animations.append(handler.animate.move_to(handler_movement))
                 
             animations.append(MoveAlongPath(frisbee, path))
             
@@ -228,100 +245,73 @@ class FrisbeeBaseScene(MovingCameraScene):
                 run_time=run_time,
                 rate_func=smooth
             )
-            
-            # 将飞盘移动到精确位置
-            frisbee.move_to(end_point)
-            
-            if highlight_player:
-                # 高亮显示接球的球员
-                self.high_light_player(target_player)
-            
-            return end_point
         else:
-            # 不移动相机
+            # 不移动相机的情况
             if target_player_movement is not None:
                 if handler_movement is not None:
-                    self.play(
-                        target_player.animate.shift(target_player_movement),
-                        handler.animate.shift(handler_movement),
-                        MoveAlongPath(frisbee, path),
-                        run_time=run_time,
-                        rate_func=smooth
-                    )
+                    # 根据is_relative决定使用shift还是move_to
+                    if is_relative:
+                        self.play(
+                            target_player.animate.shift(target_player_movement),
+                            handler.animate.shift(handler_movement),
+                            MoveAlongPath(frisbee, path),
+                            run_time=run_time,
+                            rate_func=smooth
+                        )
+                    else:
+                        self.play(
+                            target_player.animate.move_to(target_player_movement),
+                            handler.animate.move_to(handler_movement),
+                            MoveAlongPath(frisbee, path),
+                            run_time=run_time,
+                            rate_func=smooth
+                        )
                 else:
-                    self.play(
-                        target_player.animate.shift(target_player_movement),
-                        MoveAlongPath(frisbee, path),
-                        run_time=run_time,
-                        rate_func=smooth
-                    )
+                    if is_relative:
+                        self.play(
+                            target_player.animate.shift(target_player_movement),
+                            MoveAlongPath(frisbee, path),
+                            run_time=run_time,
+                            rate_func=smooth
+                        )
+                    else:
+                        self.play(
+                            target_player.animate.move_to(target_player_movement),
+                            MoveAlongPath(frisbee, path),
+                            run_time=run_time,
+                            rate_func=smooth
+                        )
             else:
                 if handler_movement is not None:
-                    self.play(
-                        handler.animate.shift(handler_movement),
-                        MoveAlongPath(frisbee, path),
-                        run_time=run_time,
-                        rate_func=smooth
-                    )
+                    if is_relative:
+                        self.play(
+                            handler.animate.shift(handler_movement),
+                            MoveAlongPath(frisbee, path),
+                            run_time=run_time,
+                            rate_func=smooth
+                        )
+                    else:
+                        self.play(
+                            handler.animate.move_to(handler_movement),
+                            MoveAlongPath(frisbee, path),
+                            run_time=run_time,
+                            rate_func=smooth
+                        )
                 else:
                     self.play(
                         MoveAlongPath(frisbee, path),
                         run_time=run_time,
                         rate_func=smooth
                     )
-            
-            # 将飞盘移动到精确位置
-            frisbee.move_to(end_point)
-            
-            if highlight_player:
-                # 高亮显示接球的球员
-                self.high_light_player(target_player)
-            
-            return end_point
-        pass
-    
-    def move_camera_to_player(self, player, vertical_only=True, run_time=1.0, target_camera_pos=None):
-        '''
-        @param player: 目标玩家对象
-        @param vertical_only: 是否只在垂直方向跟随（默认True）
-        @param run_time: 动画时长
-        @param target_camera_pos: 目标相机位置（可选）
-        @description: 控制相机跟随目标玩家
-        @example: move_camera_to_player(player)
-        @note: 该函数将相机移动到目标玩家的指定位置
-        @note: vertical_only参数决定是否只在垂直方向跟随
-        @note: 可以指定相机位置，然后移动
-        '''
-        if target_camera_pos is not None:
-            # 如果提供了目标相机位置，使用它
-            target_camera_pos = target_camera_pos
-        else:
-            # 获取当前相机位置
-            future_position = player.get_center()
-            current_camera_pos = self.camera.frame.get_center()
-            if vertical_only:
-                # 只在垂直方向跟随（保持X坐标不变）
-                target_camera_pos = np.array([
-                current_camera_pos[0], 
-                future_position[1], 
-                current_camera_pos[2]
-            ])
-            else:
-                # 完全跟随到目标位置
-                target_camera_pos = future_position
-            
-            # 执行动画
-        animations = [
-            self.camera.frame.animate.move_to(target_camera_pos)
-        ]
-
-        self.play(
-                *animations,
-                run_time=run_time,
-                rate_func=smooth
-            )
-            
-        return target_camera_pos
+        
+        # 将飞盘移动到精确位置
+        frisbee.move_to(end_point)
+        
+        if highlight_player:
+            # 高亮显示接球的球员
+            self.high_light_player(target_player)
+        
+        return end_point
         pass
     
     def move_player(self, player, target_position, path_type="straight", run_time=1.0, arc_angle=PI/2, highlight=False, is_camera_follow=False, vertical_only=True, target_camera_pos=None):
