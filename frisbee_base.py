@@ -436,6 +436,6 @@ class FrisbeeBaseScene(MovingCameraScene):
             buff=0  # 尖端刚好接触砖块圆边缘
         )
 
-        self.play(FadeIn(arrow1),FadeIn(arrow2))
-        return arrow1, arrow2
+        arrow_group=VGroup(arrow1,arrow2)
+        return arrow_group
         pass
