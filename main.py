@@ -197,7 +197,7 @@ class RectangleAroundScene(FrisbeeBaseScene):
         stack=MathTex("STACK!!",font_size=32)
         stack.next_to(attackers[3],RIGHT)
         self.play(Write(stack))
-        self.wait(0.5)
+        self.wait(1)
         self.play(FadeOut(stack))
 
         for i in range(4, 8):
@@ -215,15 +215,16 @@ class RectangleAroundScene(FrisbeeBaseScene):
         self.play(FadeOut(arrow_2),FadeOut(label_2))
 
         self.play(FadeIn(defenders_group))
-        
         self.wait(2)
+
+        # scene5
         # 玩家同时移动，相机跟随
         self.fly_frisbee(
             frisbee,
             handler,
             attackers[7],
-            LEFT,
-            flight_type="left",
+            RIGHT,
+            flight_type="right",
             run_time=1.5,
             arc_angle=PI/2,
             target_player_movement=UP * 2,
@@ -269,43 +270,7 @@ class RectangleAroundScene(FrisbeeBaseScene):
         group_rewind.clear_updaters()
         self.play(FadeOut(group_rewind), run_time=1.5)
 
-        self.fly_frisbee(
-            frisbee,
-            handler,
-            attackers[7],
-            RIGHT,
-            handler_movement=RIGHT * 2,
-            flight_type="left",
-            run_time=1.5,
-            arc_angle=PI/2,
-            is_camera_move=False,
-        )
-        # 示例1：让攻击者向左移动1个单位，使用左弧线路径，相机垂直跟随
-        self.move_player(attackers[6], LEFT, path_type="straight", run_time=1.5, is_camera_follow=True, vertical_only=True)
 
-        # 示例2：移动到场地上的特定位置，相机完全跟随
-        target_pos = np.array([2.0, 1.5, 0])
-        self.move_player(handler, target_pos, path_type="straight",is_camera_follow=True, vertical_only=False)
-
-        # 示例3：使用向量组合，让防守者向右上方移动，不跟随相机
-        self.move_player(defender[5], RIGHT*2 + UP, path_type="straight", is_camera_follow=False)
-
-        # 示例4：移动并高亮显示，自定义相机位置
-        self.move_player(attackers[3], DOWN*3, highlight=True, is_camera_follow=True, target_camera_pos=np.array([0, -1, 0]))
-        
-        target_pos = np.array([-2, 8, 0])
-        self.move_player(handler, target_pos, highlight=True, path_type="right", is_camera_follow=True, vertical_only=True)
-        
-        self.move_camera_to_player(attackers[7],vertical_only=True,run_time=1.5,target_camera_pos=None)
-
-        self.fly_frisbee(frisbee,attackers[7],handler,LEFT,flight_type="left",run_time=1.5,arc_angle=PI/2,target_player_movement=DOWN * 2,is_camera_move=True,highlight_player=True)
-
-        self.move_camera_to_player(
-            attackers[7],
-            vertical_only=True,
-            run_time=1.5,
-            target_camera_pos=None
-        )
 
         self.wait(1)
         '''
