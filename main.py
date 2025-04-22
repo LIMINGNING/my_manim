@@ -47,7 +47,19 @@ class RectangleAroundScene(FrisbeeBaseScene):
         self.play(heng_ground.animate.shift(DOWN * 2))
         self.play(heng_ground.animate.scale(2))  # 放大两倍
 
-        # scene2
+        # scene2: frisbee and handler
+        frisbee = Circle(radius=FRISBEE_RADIUS,color=WHITE)
+        handler = self.create_player(1,RED,WHITE)
+
+        handler.shift(np.array([0, -2.8, 0]))
+        frisbee_position = self.get_frisbee_position(handler, RIGHT, frisbee)
+        frisbee.move_to(frisbee_position)
+        self.play(FadeIn(handler))
+        self.wait(1)
+        self.play(FadeIn(frisbee))
+        self.wait(0.5)
+
+        # scene3
         direction_of_attack = DashedArrow(
             start = np.array([-3.5, 2.2, 0]),
             end = np.array([-3.5, 3.2, 0]),
@@ -57,8 +69,11 @@ class RectangleAroundScene(FrisbeeBaseScene):
             tip_length=0.2
         )
         direction_of_attack_label = MathTex("Direction\ of\ attack", font_size=32).next_to(direction_of_attack, RIGHT)
+        direction_of_attack_label_chinese=Text("进攻方向", font_size=24).next_to(direction_of_attack_label, RIGHT)
+        # play direction of attack
         self.play(Create(direction_of_attack))
         self.play(Write(direction_of_attack_label))
+        self.play(Write(direction_of_attack_label_chinese))
 
         tuli_attackers = Circle(radius=PLAER_RADIUS,color=RED) 
         tuli_attackers.set_fill(color=RED,opacity=1)
@@ -71,24 +86,54 @@ class RectangleAroundScene(FrisbeeBaseScene):
         tuli_attackers.next_to(direction_of_attack, DOWN)
         tuli_defender.next_to(tuli_attackers, DOWN)
         attackers_label = MathTex("Attackers", font_size=32).next_to(tuli_attackers, RIGHT)
+        attackers_label_chinese=Text("进攻方", font_size=24).next_to(attackers_label, RIGHT)
         defenders_label = MathTex("Defenders", font_size=32).next_to(tuli_defender, RIGHT)
+        defenders_label_chinese=Text("防守方", font_size=24).next_to(defenders_label, RIGHT)
 
+        # play attackers and defenders label
         self.play(Create(tuli_attackers))
         self.play(Write(attackers_label))
+        self.play(Write(attackers_label_chinese))
         self.play(Create(tuli_defender))
         self.play(Write(defenders_label))
+        self.play(Write(defenders_label_chinese))
         self.wait(2)
 
-        # scene3: frisbee and handler
-        frisbee = Circle(radius=FRISBEE_RADIUS,color=WHITE)
-        handler = self.create_player(1,RED,WHITE)
+        self.play(FadeOut(direction_of_attack_label_chinese),FadeOut(attackers_label_chinese),FadeOut(defenders_label_chinese))
 
-        handler.shift(np.array([0, -2.8, 0]))
-        frisbee_position = self.get_frisbee_position(handler, RIGHT, frisbee)
-        frisbee.move_to(frisbee_position)
-        self.play(FadeIn(handler))
-        self.wait(0.5)
-        self.play(FadeIn(frisbee))
+        # fadeout chinese and transform
+        tuli_attackers_label_suoxie= MathTex("A", font_size=32).next_to(tuli_attackers, RIGHT)
+        tuli_defender_label_suoxie= MathTex("D", font_size=32).next_to(tuli_defender, RIGHT)
+        direction_of_attack_label_suoxie= MathTex("DOA", font_size=32).next_to(direction_of_attack, RIGHT)
+        self.play(Transform(direction_of_attack_label, direction_of_attack_label_suoxie))
+        self.play(Transform(attackers_label, tuli_attackers_label_suoxie))
+        self.play(Transform(defenders_label, tuli_defender_label_suoxie))
+
+        legend_group = VGroup(
+            direction_of_attack,
+            direction_of_attack_label, 
+            tuli_attackers,
+            attackers_label,
+            tuli_defender,
+            defenders_label
+        )
+
+        legend_bg = SurroundingRectangle(legend_group, color=GREY, fill_opacity=0.1, buff=0.1)
+        self.play(Create(legend_bg))
+        legend_with_bg = VGroup(legend_bg, legend_group)
+
+        # shift right 1.8
+        self.play(legend_with_bg.animate.shift(np.array([-1.8, 0, 0])))
+
+        legend_with_bg_position=legend_with_bg.get_center()
+        def update_position(mob):
+            camera_center = self.camera.frame.get_center()
+            offset=np.array([legend_with_bg_position[0],legend_with_bg_position[1],0])
+            mob.move_to(camera_center + offset)
+        # 添加updater
+        legend_with_bg.add_updater(update_position)
+
+        self.wait(2)
 
         # scene4: attackers and defenders
         attackers = {}
@@ -107,12 +152,27 @@ class RectangleAroundScene(FrisbeeBaseScene):
         for i in range(3, 8):
             defenders_group.add(defender[i])
 
+        defender[1].next_to(handler,UL, buff=0.02)
+        self.play(FadeIn(defender[1]))
+
+        self.wait(0.5)
+
         # 将2号攻击者移动到handler左边
         attackers[2].shift(np.array([-2.5,-2.0,0]))
         defender[2].next_to(attackers[2], UR,buff=0.02)
 
         # 显示2号攻击者
         self.play(FadeIn(attackers[2]))
+
+        subhandler=MathTex("Sub\ Handler",font_size=32)
+        subhandler_chinese=Text("副持盘手",font_size=24)
+        subhandler.next_to(attackers[2],DOWN)
+        subhandler_chinese.next_to(subhandler,DOWN)
+        self.play(Write(subhandler))
+        self.play(Write(subhandler_chinese))
+        self.wait(0.5)
+        self.play(FadeOut(subhandler),FadeOut(subhandler_chinese))
+
         self.play(FadeIn(defender[2]))
 
         # 将攻击者排成一竖排，2号距离handler约8-10m，间隔2m
@@ -120,7 +180,41 @@ class RectangleAroundScene(FrisbeeBaseScene):
         self.position_defenders(attackers, defender,offset_x=0.5, offset_y=-0.4, interval=0.8)
 
         # 显示所有defenders
-        self.play(FadeIn(defenders_group),FadeIn(attackers_group))
+        self.play(Create(attackers[3]))
+
+        arrow_8_10=self.double_arrow(
+            start=attackers[3].get_center(),
+            end=handler.get_center(),
+            color=BLUE
+        )
+        self.play(Create(arrow_8_10))
+        label_8_10=MathTex("10m",font_size=32).next_to(arrow_8_10[0],RIGHT)
+
+        self.play(Write(label_8_10))
+        self.wait(0.5)
+        self.play(FadeOut(arrow_8_10),FadeOut(label_8_10))
+
+        stack=MathTex("STACK!!",font_size=32)
+        stack.next_to(attackers[3],RIGHT)
+        self.play(Write(stack))
+        self.wait(0.5)
+        self.play(FadeOut(stack))
+
+        for i in range(4, 8):
+            self.play(Create(attackers[i]))
+        
+        arrow_2=self.double_arrow(
+            start=attackers[3].get_center(),
+            end=attackers[4].get_center(),
+            color=BLUE
+        )
+        self.play(Create(arrow_2))
+        label_2=MathTex("2m",font_size=32).next_to(arrow_2[0],RIGHT)
+        self.play(Write(label_2))
+        self.wait(0.5)
+        self.play(FadeOut(arrow_2),FadeOut(label_2))
+
+        self.play(FadeIn(defenders_group))
         
         self.wait(2)
         # 玩家同时移动，相机跟随
