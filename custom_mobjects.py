@@ -10,8 +10,8 @@ class DashedArrow(VGroup):
         dash_length=0.1,
         dashed_ratio=0.5,
         buff=0,
-        stroke_width=3,
-        tip_length=0.2,
+        stroke_width=2,
+        tip_length=0.15,
         **kwargs
     ):
         super().__init__(**kwargs)
