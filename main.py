@@ -1,6 +1,7 @@
 from manim import *
 from config import *
 from frisbee_base import FrisbeeBaseScene
+from custom_mobjects import DashedArrow 
 # Text.set_default(font="Kaiti") windows
 Text.set_default(font="STKaiti")
 class RectangleAroundScene(FrisbeeBaseScene):
@@ -55,7 +56,7 @@ class RectangleAroundScene(FrisbeeBaseScene):
             stroke_width=3,
             tip_length=0.2
         )
-        direction_of_attack_label = Tex("Direction of attack", font_size=32).next_to(direction_of_attack, RIGHT)
+        direction_of_attack_label = MathTex("Direction\ of\ attack", font_size=32).next_to(direction_of_attack, RIGHT)
         self.play(Create(direction_of_attack))
         self.play(Write(direction_of_attack_label))
 
@@ -69,16 +70,14 @@ class RectangleAroundScene(FrisbeeBaseScene):
 
         tuli_attackers.next_to(direction_of_attack, DOWN)
         tuli_defender.next_to(tuli_attackers, DOWN)
-        attackers_label = Tex("Attackers", font_size=32).next_to(tuli_attackers, RIGHT)
-        defenders_label = Tex("Defenders", font_size=32).next_to(tuli_defender, RIGHT)
+        attackers_label = MathTex("Attackers", font_size=32).next_to(tuli_attackers, RIGHT)
+        defenders_label = MathTex("Defenders", font_size=32).next_to(tuli_defender, RIGHT)
 
         self.play(Create(tuli_attackers))
         self.play(Write(attackers_label))
         self.play(Create(tuli_defender))
         self.play(Write(defenders_label))
         self.wait(2)
-
-        self.play(FadeOut(direction_of_attack), FadeOut(direction_of_attack_label),FadeOut(tuli_attackers), FadeOut(attackers_label),FadeOut(tuli_defender), FadeOut(defenders_label))
 
         # scene3: frisbee and handler
         frisbee = Circle(radius=FRISBEE_RADIUS,color=WHITE)
@@ -88,31 +87,9 @@ class RectangleAroundScene(FrisbeeBaseScene):
         frisbee_position = self.get_frisbee_position(handler, RIGHT, frisbee)
         frisbee.move_to(frisbee_position)
         self.play(FadeIn(handler))
+        self.wait(0.5)
         self.play(FadeIn(frisbee))
-        handler_center  = handler.get_center()
 
-        self.wait(2)
-
-        self.play(
-            Rotate(
-                frisbee,
-                angle=PI,
-                about_point=handler_center,
-                run_time=1,
-                rate_func=smooth
-            )
-        )
-
-        rectangle_breakside = Rectangle(width=GROUND_RATIO * GROUND_WIDTH,height=2.8*2,color=BLUE)
-        rectangle_breakside.set_fill(color=RED,opacity=0.5)
-        rectangle_breakside.shift(np.array([-GROUND_RATIO * GROUND_WIDTH/2, 0, 0]))
-        self.play(FadeIn(rectangle_breakside))
-
-        rectangle_openside = Rectangle(width=GROUND_RATIO * GROUND_WIDTH,height=2.8*2,color=BLUE)
-        rectangle_openside.set_fill(color=BLUE,opacity=0.5)
-        rectangle_openside.shift(np.array([GROUND_RATIO * GROUND_WIDTH/2, 0, 0]))
-        self.play(FadeIn(rectangle_openside))
-        
         # scene4: attackers and defenders
         attackers = {}
         for i in range(2,8):
@@ -202,7 +179,7 @@ class RectangleAroundScene(FrisbeeBaseScene):
             frisbee,
             handler,
             attackers[7],
-            LEFT,
+            RIGHT,
             handler_movement=RIGHT * 2,
             flight_type="left",
             run_time=1.5,
@@ -210,11 +187,11 @@ class RectangleAroundScene(FrisbeeBaseScene):
             is_camera_move=False,
         )
         # 示例1：让攻击者向左移动1个单位，使用左弧线路径，相机垂直跟随
-        self.move_player(attackers[6], LEFT, path_type="right", run_time=1.5, is_camera_follow=True, vertical_only=True)
+        self.move_player(attackers[6], LEFT, path_type="straight", run_time=1.5, is_camera_follow=True, vertical_only=True)
 
         # 示例2：移动到场地上的特定位置，相机完全跟随
         target_pos = np.array([2.0, 1.5, 0])
-        self.move_player(handler, target_pos, path_type="right",is_camera_follow=True, vertical_only=False)
+        self.move_player(handler, target_pos, path_type="straight",is_camera_follow=True, vertical_only=False)
 
         # 示例3：使用向量组合，让防守者向右上方移动，不跟随相机
         self.move_player(defender[5], RIGHT*2 + UP, path_type="straight", is_camera_follow=False)
@@ -287,72 +264,4 @@ class RectangleAroundScene(FrisbeeBaseScene):
         self.wait(1)
 
         self.wait(2)
-
-class DashedArrow(VGroup):
-    def __init__(
-        self,
-        start=LEFT,
-        end=RIGHT,
-        color=WHITE,
-        dash_length=0.1,
-        dashed_ratio=0.5,
-        buff=0,
-        stroke_width=3,
-        tip_length=0.2,
-        **kwargs
-    ):
-        super().__init__(**kwargs)
-        
-        # 计算方向向量
-        direction = end - start
-        direction = direction / np.linalg.norm(direction)
-        
-        # 为箭头尖端预留空间，缩短虚线
-        adjusted_end = end - direction * tip_length * 0.8  # 缩短终点位置
-        
-        # 创建虚线
-        dashed_line = DashedLine(
-            start=start,
-            end=adjusted_end,  # 使用调整后的终点
-            dash_length=dash_length,
-            dashed_ratio=dashed_ratio,
-            color=color,
-            stroke_width=stroke_width
-        )
-        
-        # 使用临时箭头来获取正确位置的箭头尖端
-        temp_arrow = Arrow(start=start, end=end, color=color, buff=0)
-        arrow_tip = temp_arrow.tip.copy()
-        
-        # 调整箭头尖端大小
-        arrow_tip.scale(tip_length / arrow_tip.height)
-        
-        self.add(dashed_line, arrow_tip)
-        self.dashed_line = dashed_line  # 保存引用
-        self.arrow_tip = arrow_tip      # 保存引用
-
-# 为DashedArrow创建自定义的Create动画
-# 简化版的CreateDashedArrow
-# 为DashedArrow创建自定义的Create动画
-class CreateDashedArrow(Animation):
-    def __init__(self, dashedarrow, **kwargs):
-        self.line_animation = Create(dashedarrow.dashed_line)
-        super().__init__(dashedarrow, **kwargs)
-        
-    def begin(self):
-        super().begin()  # 确保父类的begin方法被调用
-        self.line_animation.begin()
-        # 初始时隐藏箭头尖端
-        self.mobject.arrow_tip.set_opacity(0)
-        
-    def interpolate_mobject(self, alpha):
-        self.line_animation.interpolate_mobject(alpha)
-        
-        # 当虚线创建到一定程度时(例如70%)，开始显示箭头尖端
-        if alpha >= 0.7:
-            # 将箭头尖端的不透明度从0到1平滑过渡
-            tip_alpha = (alpha - 0.7) / 0.3
-            self.mobject.arrow_tip.set_opacity(tip_alpha)
-        else:
-            # 确保箭头尖端不可见
-            self.mobject.arrow_tip.set_opacity(0)
+        self.play(FadeOut(direction_of_attack), FadeOut(direction_of_attack_label),FadeOut(tuli_attackers), FadeOut(attackers_label),FadeOut(tuli_defender), FadeOut(defenders_label))
