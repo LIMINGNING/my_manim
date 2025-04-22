@@ -172,7 +172,7 @@ class RectangleAroundScene(FrisbeeBaseScene):
         self.play(FadeIn(defender[2]))
 
         # 将攻击者排成一竖排，2号距离handler约8-10m，间隔2m
-        self.position_attackers(handler, attackers, base_distance=2.3, interval=0.6)      
+        self.position_attackers(handler, attackers, base_distance=1.7, interval=0.6)      
         self.position_defenders(attackers, defender,offset_x=0.5, offset_y=-0.4, interval=0.8)
 
         # 显示所有defenders
@@ -184,7 +184,7 @@ class RectangleAroundScene(FrisbeeBaseScene):
             color=BLUE
         )
         self.play(Create(arrow_8_10))
-        label_8_10=MathTex("10m",font_size=32).next_to(arrow_8_10[0],RIGHT)
+        label_8_10=MathTex("8\sim 10m",font_size=32).next_to(arrow_8_10[0],RIGHT)
 
         self.play(Write(label_8_10))
         self.wait(0.5)
