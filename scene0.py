@@ -21,17 +21,18 @@ class scene0(FrisbeeBaseScene):
         Create(dashed_line_up)
         Create(dashed_line_down)
         shu_ground = VGroup(rectangle,dashed_line_up,dashed_line_down)
-        '''
+        
         # 添加网格作为参考
         grid1 = NumberPlane(x_range=[-6, 6], y_range=[-4, 4])
         self.add(grid1)
+        '''
         
         # scene0
         # 中央大标题
         center_text = Text(
             "飞盘场地介绍与竖排战术",
             font_size=60)
-        center_text_english=MathTex("Frisbee\ Field\ Introduction\ and\ Vertical\ Tactics",font_size=36)
+        center_text_english=MathTex("Frisbee\ Field\ Introduction\ and\ Vertical\ Stack\ Tactics",font_size=36)
         center_text_english.next_to(center_text, DOWN)
         UD_text = Text(
             "李明柠",
