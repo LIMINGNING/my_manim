@@ -78,7 +78,7 @@ class scene2(FrisbeeBaseScene):
         defenders_label = MathTex("Defenders", font_size=32).next_to(tuli_defender, RIGHT)
         defenders_label_chinese=Text("防守方", font_size=24).next_to(defenders_label, RIGHT)
 
-        # play attackers and defenders
+        # play attackers and defenders label
         self.play(Create(tuli_attackers))
         self.play(Write(attackers_label))
         self.play(Write(attackers_label_chinese))
@@ -110,6 +110,7 @@ class scene2(FrisbeeBaseScene):
         self.play(Create(legend_bg))
         legend_with_bg = VGroup(legend_bg, legend_group)
 
+        # shift right 1.8
         self.play(legend_with_bg.animate.shift(np.array([-1.8, 0, 0])))
 
         legend_with_bg_position=legend_with_bg.get_center()

@@ -80,6 +80,7 @@ class scene1(FrisbeeBaseScene):
 
         self.wait(2)
 
+        # breakside
         rectangle_breakside = Rectangle(width=GROUND_RATIO * GROUND_WIDTH,height=2.8*2,color=BLUE)
         rectangle_breakside.set_fill(color=RED,opacity=0.5)
         rectangle_breakside.shift(np.array([-GROUND_RATIO * GROUND_WIDTH/2, 0, 0]))
@@ -93,6 +94,7 @@ class scene1(FrisbeeBaseScene):
         self.play(Write(breakside_label_chinese))
         self.wait(0.5)
 
+        # rotate frisbee
         handler_center  = handler.get_center()
         self.play(
             Rotate(
@@ -106,6 +108,7 @@ class scene1(FrisbeeBaseScene):
 
         self.play(FadeOut(rectangle_breakside),FadeOut(breakside_label),FadeOut(breakside_label_chinese))
 
+        # openside
         rectangle_openside = Rectangle(width=GROUND_RATIO * GROUND_WIDTH,height=2.8*2,color=BLUE)
         rectangle_openside.set_fill(color=BLUE,opacity=0.5)
         rectangle_openside.shift(np.array([GROUND_RATIO * GROUND_WIDTH/2, 0, 0]))
