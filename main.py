@@ -454,6 +454,21 @@ class RectangleAroundScene(FrisbeeBaseScene):
 
         self.wait(0.5)
 
+        pos2=attackers[7].get_center()
+        arr1=Arrow(
+            start=pos2,
+            end=np.array([2, -1, 0]),
+            color=ORANGE,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.2
+        )
+        arr1_label=MathTex("dump", font_size=32).next_to(arr1, RIGHT)
+        self.play(Create(arr1))
+        self.play(Write(arr1_label))
+        self.wait(0.5)
+        self.play(FadeOut(arr1_label),FadeOut(arr1))
+
         self.fly_frisbee(
             frisbee=frisbee,
             handler=attackers[7],
@@ -558,4 +573,4 @@ class RectangleAroundScene(FrisbeeBaseScene):
         self.wait(1)
 
         self.wait(2)
-        self.play(FadeOut(direction_of_attack), FadeOut(direction_of_attack_label),FadeOut(tuli_attackers), FadeOut(attackers_label),FadeOut(tuli_defender), FadeOut(defenders_label))
+        self.play(FadeOut(direction_of_attack), FadeOut(direction_of_attack_label),FadeOut(tuli_attackers), FadeOut(attackers_label),FadeOut(tuli_defender), FadeOut(defenders_label),FadeOut(heng_ground))

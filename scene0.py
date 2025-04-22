@@ -150,7 +150,7 @@ class scene0(FrisbeeBaseScene):
         brick_label.next_to(double_arrow_brick_left_length[0], UP)
         self.play(Write(brick_label))
 
-        self.wait()
+        self.wait(2)
  
         self.play(FadeOut(width_label), FadeOut(length_label), FadeOut(depth_label),FadeOut(brick_label)
                 ,FadeOut(double_arrow_ground_width[0]), FadeOut(double_arrow_ground_width[1]), FadeOut(double_arrow_ground_length[0]), FadeOut(double_arrow_ground_length[1]), FadeOut(double_arrow_ground_depth[0]), FadeOut(double_arrow_ground_depth[1]),FadeOut(double_arrow_brick_left_length[0]), FadeOut(double_arrow_brick_left_length[1]),FadeOut(brick_mark_name), FadeOut(brick_mark_name_chinese))
