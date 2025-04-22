@@ -314,7 +314,7 @@ class FrisbeeBaseScene(MovingCameraScene):
         return end_point
         pass
     
-    def move_player(self, player, target_position, path_type="straight", run_time=1.0, arc_angle=PI/2, highlight=False, is_camera_follow=False, vertical_only=True, target_camera_pos=None):
+    def move_player(self, player, target_position, path_type="straight", run_time=1.0, arc_angle=PI/2, highlight=False, is_camera_follow=False, vertical_only=True, target_camera_pos=None, is_relative=True):
         """
         控制玩家按指定路径移动到目标位置，可选择相机跟随
         
@@ -331,16 +331,12 @@ class FrisbeeBaseScene(MovingCameraScene):
         """
         # 获取起点
         start_point = player.get_center()
-        
-        # 目标位置可以是向量或点坐标
-        if isinstance(target_position, np.ndarray) and len(target_position) == 3:
-            # 如果是点坐标，计算位移向量
-            end_point = target_position
-            shift_vector = end_point - start_point
+
+        if is_relative:
+            end_point = start_point + target_position
         else:
-            # 如果直接提供了位移向量
-            shift_vector = target_position
-            end_point = start_point + shift_vector
+            # 如果不是相对位移，直接使用目标位置
+            end_point = target_position
         
         # 根据路径类型创建不同的路径
         if path_type == "left":
@@ -401,8 +397,7 @@ class FrisbeeBaseScene(MovingCameraScene):
         # 可选：移动结束后高亮显示
         if highlight:
             self.high_light_player(player)
-        
-        return shift_vector  # 返回位移向量以便后续使用
+        # 返回位移向量以便后续使用
         pass
 
     def double_arrow(self, start, end, color=BLUE, stroke_width=2, tip_length=0.15, buff=0):

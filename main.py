@@ -5,6 +5,49 @@ from custom_mobjects import DashedArrow
 # Text.set_default(font="Kaiti") windows
 Text.set_default(font="STKaiti")
 class RectangleAroundScene(FrisbeeBaseScene):
+    def move_player_and_fly_frisbee(self, frisbee, handler, target_player, defender_to_move, 
+                               attacker_target_pos, defender_target_pos, direction=RIGHT,
+                               flight_type="straight", run_time=1.5, is_relative=False, arc_angle=PI/2):
+            """同时执行飞盘飞行和防守者移动的动画"""
+            
+            # 计算飞盘路径
+            start_point = frisbee.get_center()
+            
+            # 计算终点和路径
+            future_player = target_player.copy()
+            if is_relative:
+                future_player.shift(attacker_target_pos)
+            else:
+                future_player.move_to(attacker_target_pos)
+            
+            end_point = self.get_frisbee_position(future_player, direction, frisbee)
+            
+            # 创建飞盘路径
+            if flight_type == "left":
+                frisbee_path = ArcBetweenPoints(start_point, end_point, angle=-arc_angle)
+            elif flight_type == "right":
+                frisbee_path = ArcBetweenPoints(start_point, end_point, angle=arc_angle)
+            else:
+                frisbee_path = Line(start_point, end_point)
+            
+            # 创建防守者路径
+            defender_start = defender_to_move.get_center()
+            defender_end = defender_target_pos
+            defender_path = Line(defender_start, defender_end)
+            
+            # 执行所有动画
+            self.play(
+                MoveAlongPath(frisbee, frisbee_path),
+                target_player.animate.move_to(attacker_target_pos),
+                MoveAlongPath(defender_to_move, defender_path),
+                run_time=run_time,
+                rate_func=smooth
+            )
+            
+            # 确保对象在正确位置
+            frisbee.move_to(end_point)
+            target_player.move_to(attacker_target_pos)
+            defender_to_move.move_to(defender_end)
     def construct(self):
         '''
         # 使用方法
@@ -290,24 +333,27 @@ class RectangleAroundScene(FrisbeeBaseScene):
         # 3. 只需要移动attacker，defender会自动跟随
         self.move_player(
             attackers[7],
-            np.array([1.5, 2.2, 0])
+            np.array([1.5, 2.2, 0]),
+            is_relative=False
         )
 
         # 4. 动画结束后移除updater
         defender[7].clear_updaters()
 
-        attackers7_end_position=np.array([3.5,0.5,0])
-        self.fly_frisbee(
-            frisbee,
-            handler,
-            attackers[7],
-            RIGHT,
+        attackers7_end_position = np.array([2.5,0.5,0])
+
+        # 使用辅助函数同时执行飞盘飞行和防守者移动
+        self.move_player_and_fly_frisbee(
+            frisbee=frisbee,
+            handler=handler,
+            target_player=attackers[7],
+            defender_to_move=defender[7],
+            attacker_target_pos=attackers7_end_position,
+            defender_target_pos=attackers7_end_position + UP * 0.5,
+            direction=RIGHT,
             flight_type="straight",
             run_time=1.5,
-            arc_angle=PI/2,
-            target_player_movement=attackers7_end_position,
-            is_camera_move=False,
-            highlight_player=False
+            is_relative=False
         )
 
         self.wait(1)
