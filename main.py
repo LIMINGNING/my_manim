@@ -258,17 +258,6 @@ class RectangleAroundScene(FrisbeeBaseScene):
 
         # scene5
         # 玩家同时移动，相机跟随
-        self.fly_frisbee(
-            frisbee,
-            handler,
-            attackers[7],
-            RIGHT,
-            flight_type="right",
-            run_time=1.5,
-            arc_angle=PI/2,
-            target_player_movement=UP * 2,
-            vertical_only=True
-        )
 
         self.wait(2)
 
@@ -291,19 +280,7 @@ class RectangleAroundScene(FrisbeeBaseScene):
         self.play(FadeIn(group_rewind))
 
         # 执行飞盘动画，REWIND会自动跟随相机
-        self.fly_frisbee(
-            frisbee,
-            attackers[7],
-            handler,
-            RIGHT,
-            handler_movement=DOWN * 2,
-            flight_type="left",
-            run_time=1.5,
-            arc_angle=PI/2,
-            vertical_only=True,
-            target_camera_pos=ORIGIN,
-            highlight_player=False
-        )
+        
 
         # 移除updater并淡出
         group_rewind.clear_updaters()
@@ -321,40 +298,36 @@ class RectangleAroundScene(FrisbeeBaseScene):
         self.wait(0.5)
         self.play(FadeOut(arrow1))
 
-        self.play(defender[7].animate.next_to(attackers[7], UR, buff=0.02))
-        # 1. 首先为defender添加一个updater，让他始终跟随attacker
-        def update_defender_position(mob):
-            # 确保defender始终位于attacker的右上角
-            mob.next_to(attackers[7], UR, buff=0.02)
-
-        # 2. 添加updater
-        defender[7].add_updater(update_defender_position)
-
-        # 3. 只需要移动attacker，defender会自动跟随
-        self.move_player(
-            attackers[7],
-            np.array([1.5, 2.2, 0]),
-            is_relative=False
-        )
-
-        # 4. 动画结束后移除updater
-        defender[7].clear_updaters()
-
         attackers7_end_position = np.array([2.5,0.5,0])
+        # 1. 计算attackers[7]移动后的位置
+        attacker_target_pos = np.array([1.5, 2.2, 0])
 
-        # 使用辅助函数同时执行飞盘飞行和防守者移动
-        self.move_player_and_fly_frisbee(
-            frisbee=frisbee,
-            handler=handler,
-            target_player=attackers[7],
-            defender_to_move=defender[7],
-            attacker_target_pos=attackers7_end_position,
-            defender_target_pos=attackers7_end_position + UP * 0.5,
-            direction=RIGHT,
-            flight_type="straight",
-            run_time=1.5,
-            is_relative=False
+        # 2. 创建临时对象并移动到目标位置
+        temp_attacker = attackers[7].copy()
+        temp_attacker.move_to(attacker_target_pos)
+
+        # 3. 使用临时对象计算defender位置
+        temp_defender = defender[7].copy()
+        temp_defender.next_to(temp_attacker, UR, buff=0.1)
+        defender_target_pos = temp_defender.get_center()
+        # 示例：同时移动攻击者和防守者
+        # 4. 同时移动两个对象到计算好的位置
+        self.move_multiple_players([
+            (attackers[7], attacker_target_pos, False),
+            (defender[7], defender_target_pos, False)
+        ], run_time=1.5)
+
+        '''
+        # 或者直接使用原函数的返回值
+        animations1, _ = self.move_player(attackers[7], np.array([2.5, 0.5, 0]), is_relative=False, return_animations=True)
+        animations2, _ = self.move_player(defender[7], np.array([2.5, 1.0, 0]), is_relative=False, return_animations=True)
+
+        self.play(
+            *animations1,
+            *animations2,
+            run_time=1.5
         )
+        '''
 
         self.wait(1)
         '''
