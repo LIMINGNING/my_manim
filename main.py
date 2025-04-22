@@ -218,6 +218,15 @@ class RectangleAroundScene(FrisbeeBaseScene):
         self.position_attackers(handler, attackers, base_distance=1.7, interval=0.6)      
         self.position_defenders(attackers, defender,offset_x=0.5, offset_y=-0.4, interval=0.8)
 
+        origin_pos_attacker = {}
+        origin_pos_defender = {}
+        for i in range(2, 8):
+            origin_pos_attacker[i] = attackers[i].get_center()
+            origin_pos_defender[i] = defender[i].get_center()
+        origin_pos_attacker[1] = handler.get_center()
+        origin_pos_defender[1] = defender[1].get_center()
+
+
         # 显示所有defenders
         self.play(Create(attackers[3]))
 
@@ -259,8 +268,8 @@ class RectangleAroundScene(FrisbeeBaseScene):
         # scene5
         # 玩家同时移动，相机跟随
 
-        self.wait(2)
-
+        self.wait(1)
+        '''
         rewind_text = Tex("REWIND",font_size=36)
         rewind_re=Rectangle(color=BLUE)
         rewind_re.surround(rewind_text)
@@ -285,6 +294,37 @@ class RectangleAroundScene(FrisbeeBaseScene):
         # 移除updater并淡出
         group_rewind.clear_updaters()
         self.play(FadeOut(group_rewind), run_time=1.5)
+        '''
+
+        openside=Circle(radius=1,color=YELLOW)
+        openside.move_to(np.array([2.2, -0.5, 0]))
+        openside_label=MathTex("Open\ Side",font_size=32).move_to(np.array([2.2, -0.5, 0]))
+        self.play(Create(openside),Create(openside_label))
+        self.wait(0.5)
+
+        arrow_connot_go=Arrow(
+            start=attackers[7].get_center(),
+            end=np.array([2.2, -0.5, 0]),
+            color=RED,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.15
+        )
+        arrow_frisbee_go=Arrow(
+            start=handler.get_center(),
+            end=np.array([2.2, -0.5, 0]),
+            color=ORANGE,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.15
+        )
+        label_connot_go=MathTex("Hard\ to\ go",font_size=32).next_to(arrow_connot_go,RIGHT)
+        self.play(Create(arrow_connot_go))
+        self.play(Create(arrow_frisbee_go))
+        self.wait(1)
+        self.play(Write(label_connot_go))
+        self.wait(1)
+        self.play(FadeOut(arrow_connot_go),FadeOut(arrow_frisbee_go),FadeOut(label_connot_go),FadeOut(openside),FadeOut(openside_label))
 
         arrow1=Arrow(
             start=attackers[7].get_center(),
@@ -298,17 +338,14 @@ class RectangleAroundScene(FrisbeeBaseScene):
         self.wait(0.5)
         self.play(FadeOut(arrow1))
 
-        attackers7_end_position = np.array([2.5,0.5,0])
         # 1. 计算attackers[7]移动后的位置
         attacker_target_pos = np.array([1.5, 2.2, 0])
-
         # 2. 创建临时对象并移动到目标位置
         temp_attacker = attackers[7].copy()
         temp_attacker.move_to(attacker_target_pos)
-
         # 3. 使用临时对象计算defender位置
         temp_defender = defender[7].copy()
-        temp_defender.next_to(temp_attacker, UR, buff=0.1)
+        temp_defender.next_to(temp_attacker, UP, buff=0.1)
         defender_target_pos = temp_defender.get_center()
         # 示例：同时移动攻击者和防守者
         # 4. 同时移动两个对象到计算好的位置
@@ -316,6 +353,123 @@ class RectangleAroundScene(FrisbeeBaseScene):
             (attackers[7], attacker_target_pos, False),
             (defender[7], defender_target_pos, False)
         ], run_time=1.5)
+
+        self.wait(0.5)
+        arrow2=Arrow(
+            start=attackers[7].get_center(),
+            end=np.array([2.5, 0.5, 0]),
+            color=BLUE,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.15
+        )
+
+        arrow3=Arrow(
+            start=handler.get_center(),
+            end=np.array([2.5, 0.5, 0]),
+            color=ORANGE,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.15
+        )
+        self.play(Create(arrow2),Create(arrow3))
+        self.wait(0.5)
+        self.play(FadeOut(arrow2),FadeOut(arrow3))
+
+        pos1=np.array([2.5, 0.5, 0])
+        temp_attacker.move_to(pos1)
+        temp_defender.next_to(temp_attacker, UL, buff=0.01)
+        defender_target_pos = temp_defender.get_center()
+
+        self.fly_frisbee(
+            frisbee=frisbee,
+            handler=handler,
+            target_player=attackers[7],
+            direction=RIGHT,
+            defender=defender[7],
+            target_player_movement=pos1,
+            defender_movement=defender_target_pos,
+            is_camera_move=False,
+            flight_type="straight",
+            is_relative=False,
+            run_time=1.5
+        )
+
+        self.wait(0.5)
+
+        self.fly_frisbee(
+            frisbee=frisbee,
+            handler=attackers[7],
+            target_player=attackers[6],
+            direction=RIGHT,
+            defender=defender[6],
+            target_player_movement=np.array([1, 6, 0]),
+            defender_movement=np.array([1, 5, 0]),
+            is_camera_move=True,
+            flight_type="right",
+            is_relative=False,
+            run_time=1.5
+        )
+
+        self.wait(0.5)
+
+        self.fly_frisbee(
+            frisbee=frisbee,
+            handler=attackers[6],
+            target_player=attackers[7],
+            direction=RIGHT,
+            defender=defender[6],
+            defender_movement=origin_pos_defender[6],
+            handler_movement=origin_pos_attacker[6],
+            is_camera_move=True,
+            flight_type="left",
+            is_relative=False,
+            run_time=1.5,
+            highlight_player=False,
+            target_camera_pos=ORIGIN
+        )
+
+        self.fly_frisbee(
+            frisbee=frisbee,
+            handler=attackers[7],
+            target_player=handler,
+            direction=RIGHT,
+            defender=defender[1],
+            target_player_movement=np.array([2, -1, 0]),
+            defender_movement=np.array([1.5, -1.5, 0]),
+            is_camera_move=False,
+            flight_type="straight",
+            is_relative=False,
+            run_time=1.5,
+            highlight_player=False
+        )
+
+        da1=self.double_arrow(
+            start=np.array([2, -2.2, 0]),
+            end=np.array([2, -1,0]),
+            color=BLUE,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.15
+        )
+        line1=DashedLine(
+            start=origin_pos_attacker[1],
+            end=np.array([2, -2.2,0]),
+            color=BLUE,
+            buff=0,
+            stroke_width=2,
+            tip_length=0.15
+        )
+        han_copy=Circle(radius=PLAER_RADIUS,color=YELLOW)
+        han_copy.move_to(origin_pos_attacker[1])
+        label_1=MathTex("Movement!!",font_size=32).next_to(da1[0],RIGHT)
+        self.play(Create(han_copy))
+        self.play(Create(line1))
+        self.play(FadeIn(da1))
+        self.play(Write(label_1))
+
+        self.wait(0.5)
+        self.play(FadeOut(da1),FadeOut(label_1),FadeOut(han_copy),FadeOut(line1))
 
         '''
         # 或者直接使用原函数的返回值
@@ -361,7 +515,6 @@ class RectangleAroundScene(FrisbeeBaseScene):
         
         self.play(attackers[7].animate.shift(RIGHT * 2))
         '''
-
         # 将相机视角平滑地回到原点
         self.play(
             self.camera.frame.animate.move_to(ORIGIN),

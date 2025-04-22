@@ -140,10 +140,10 @@ class FrisbeeBaseScene(MovingCameraScene):
     def fly_frisbee(self, frisbee, handler, target_player, direction, defender=None, 
                flight_type="straight", run_time=1.5, arc_angle=PI/2, 
                target_player_movement=None, handler_movement=None, defender_movement=None,
-               is_camera_move=True, vertical_only=True, target_camera_pos=None, 
-               highlight_player=True, is_relative=False):
+               additional_players=None, is_camera_move=True, vertical_only=True, 
+                target_camera_pos=None, highlight_player=True, is_relative=False):
         """
-        飞盘飞行时相机跟随目标玩家，可同时移动攻击者、持盘人和防守者
+        飞盘飞行时相机跟随目标玩家，可同时移动攻击者、持盘人、防守者和其他任意多个玩家
         
         @param frisbee: 飞盘对象
         @param handler: handler对象
@@ -156,11 +156,12 @@ class FrisbeeBaseScene(MovingCameraScene):
         @param target_player_movement: 目标玩家的移动向量或目标位置
         @param handler_movement: handler的移动向量或目标位置
         @param defender_movement: 防守者的移动向量或目标位置
+        @param additional_players: 额外需要移动的玩家列表，每项为 (player, position, player_is_relative) 元组
         @param is_camera_move: 是否移动相机（默认True）
         @param vertical_only: 是否只在垂直方向跟随（默认True）
         @param target_camera_pos: 目标相机位置（可选）
         @param highlight_player: 是否高亮显示目标玩家（默认True）
-        @param is_relative: 玩家移动是相对位移(True)还是绝对位置(False)，默认True
+        @param is_relative: 玩家移动是相对位移(True)还是绝对位置(False)，默认False
         """
         # 获取起点
         start_point = frisbee.get_center()
@@ -217,6 +218,14 @@ class FrisbeeBaseScene(MovingCameraScene):
                 animations.append(defender.animate.shift(defender_movement))
             else:
                 animations.append(defender.animate.move_to(defender_movement))
+        
+        # 添加额外玩家的移动动画
+        if additional_players:
+            for player, position, player_is_relative in additional_players:
+                if player_is_relative:
+                    animations.append(player.animate.shift(position))
+                else:
+                    animations.append(player.animate.move_to(position))
         
         # 添加相机动画
         if is_camera_move:
