@@ -22,9 +22,6 @@ class scene2(FrisbeeBaseScene):
         Create(dashed_line_down)
         shu_ground = VGroup(rectangle,dashed_line_up,dashed_line_down)
         '''
-        # 添加网格作为参考
-        grid1 = NumberPlane(x_range=[-6, 6], y_range=[-4, 4])
-        self.add(grid1)
         
         # scene1
         rectangle1 = Rectangle(width=GROUND_RATIO * GROUND_LENGTH,height=GROUND_RATIO * GROUND_WIDTH,color=BLUE)
