@@ -81,6 +81,23 @@ class scene1(FrisbeeBaseScene):
 
         self.wait(2)
 
+        defender = {}
+        for i in range(1,8):
+            defender[i] = self.create_player(i,BLUE,WHITE)
+
+        defender[1].next_to(handler,UL, buff=0.02)
+        self.play(FadeIn(defender[1]))
+
+        self.wait(0.5)
+        force_forehand_defence=MathTex("Force\ Forehand",font_size=32)
+        force_forehand_defence_chinese=Text("逼迫正手",font_size=24)
+        force_forehand_defence.next_to(defender[1],UP)
+        force_forehand_defence_chinese.next_to(force_forehand_defence,RIGHT)
+        self.play(Write(force_forehand_defence))
+        self.play(Write(force_forehand_defence_chinese))
+        self.wait(1)
+        self.play(FadeOut(force_forehand_defence),FadeOut(force_forehand_defence_chinese))
+
         # breakside
         rectangle_breakside = Rectangle(width=GROUND_RATIO * GROUND_WIDTH,height=2.8*2,color=BLUE)
         rectangle_breakside.set_fill(color=RED,opacity=0.5)
