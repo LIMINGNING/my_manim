@@ -451,7 +451,7 @@ class FrisbeeBaseScene(MovingCameraScene):
         arrow2 = Arrow(
             start=end,
             end=start,
-            color=BLUE,
+            color=color,
             stroke_width=2,
             tip_length=0.15,
             buff=0  # 尖端刚好接触砖块圆边缘
